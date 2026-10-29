@@ -1,0 +1,88 @@
+prefix: "&8[&bFlavor&3Discord&8] &r"
+no-permission: "&cYou do not have permission to do that"
+player-only: "&cThis command can only be used by a player in game"
+unknown-command: "&cUnknown subcommand. Use &e/flavorhuhobot help&c"
+reloaded: "&aConfiguration, language, links and usage reloaded. Discord is reconnecting"
+
+discord-not-ready: "&cDiscord bot is not connected. Check token, network and intents"
+link-success: "&aLinked to &e{player}"
+link-already: "&eYou already linked &6{player}&e, run &f/unbind&e first"
+link-player-taken: "&cThat Minecraft account is already linked by someone else"
+link-discord-taken: "&cYour Discord account is already linked to &6{player}"
+link-none: "&eYou have not linked an account yet"
+link-removed: "&aAccount unlinked"
+link-required: "&cLink your Minecraft account before chatting"
+force-bind-kick: "&cYou have not linked a Minecraft account\n&eCode: &f{code}\n&eRun &f/bind {code} &ein Discord\n&7Discord: {groups}\n&7Then rejoin the server"
+bind-success: "&aLinked &e{player}&a, please rejoin the server"
+bind-invalid: "&cInvalid or already used code"
+bind-expired: "&cThe code has expired. Rejoin to get a new one"
+bind-rate-limited: "&cToo many attempts. Try again later"
+
+agent-disabled: "&cAI Agent is disabled. Set agent.enabled to true"
+agent-no-key: "&cAI Agent is missing base-url or api-key"
+agent-started: "&aAI task started"
+agent-stopped: "&eStop requested"
+agent-busy: "&eA task is already running. Use /agent stop or wait"
+agent-context-cleared: "&aAI context cleared"
+agent-context-busy: "&eA task is running or awaiting approval. Use /agent stop first"
+agent-no-channel-permission: "&cThe bot lacks Send Messages / Embed Links permission in the target channel"
+agent-budget: "&cDaily AI token budget exceeded"
+agent-error: "&cAI request failed: {error}"
+agent-max-steps: "&eMaximum steps reached. Task stopped"
+
+approval-title: "Approval required"
+approval-approved: "&aApproved and executed"
+approval-rejected: "&cRejected"
+approval-timeout: "&eApproval timed out; operation rejected"
+approval-no-permission: "&cYou cannot approve this request"
+approval-self: "&cYou cannot approve your own request"
+approval-expired: "&cThis approval is expired or does not exist"
+
+console-executed: "&aCommand submitted: &f{command}"
+console-denied: "&cBlocked by command policy: {reason}"
+
+whitelist-added: "&aAdded to whitelist: &e{player}"
+whitelist-removed: "&aRemoved from whitelist: &e{player}"
+whitelist-empty: "&eThe whitelist is empty"
+
+status-title: "Server status"
+status-server: "Server"
+status-discord: "Discord"
+status-agent: "AI Agent"
+status-online: "Online players"
+status-links: "Linked accounts"
+status-tokens: "Tokens today"
+
+help-title: "Flavor-HuHoBot-Discord-Bridge help"
+help-line: "&e/bind <player or code> &7- link your Minecraft account"
+tool-denied: "&cTool call denied: {reason}"
+
+command:
+  agent:
+    description: "AI management assistant"
+    run: "Run an AI task"
+    task: "Task description"
+    stop: "Stop the current AI task"
+    new: "Clear the current AI context"
+  bind:
+    description: "Link a Minecraft account"
+    value: "Player ID when force-bind is off, or 5-digit code when on"
+  unbind:
+    description: "Unlink the Minecraft account"
+  status:
+    description: "View server and bot status"
+  online:
+    description: "View online players"
+  whitelist:
+    description: "Whitelist management"
+    add: "Add a player"
+    remove: "Remove a player"
+    list: "List whitelisted players"
+    player: "Player name"
+  console:
+    description: "Run a console command (admin)"
+    command: "Command without a leading slash"
+  help:
+    description: "View help"
+  reload:
+    description: "Reload all files and reconnect the bot (admin)"

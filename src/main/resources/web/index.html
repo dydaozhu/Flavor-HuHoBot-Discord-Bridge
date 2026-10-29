@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flavor-HuHoBot-Discord-Bridge</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main id="login" class="panel login">
+    <h1>Flavor <span>HuHoBot</span></h1>
+    <p class="muted">Discord Bridge 管理面板</p>
+    <label for="token">WebUI 访问令牌</label>
+    <input id="token" type="password" autocomplete="current-password" placeholder="首次启动时控制台输出的令牌">
+    <button id="login-btn" class="primary">登录</button>
+    <p id="login-error" class="error"></p>
+</main>
+
+<div id="app" class="hidden">
+    <header>
+        <h1>Flavor <span>HuHoBot</span></h1>
+        <div>
+            <button id="refresh">刷新</button>
+            <button id="logout">退出</button>
+        </div>
+    </header>
+
+    <section id="status" class="cards"></section>
+
+    <section class="panel">
+        <h2>配置</h2>
+        <p class="muted">保存后立即写入 config.yml；token / API Key 留空表示不修改。</p>
+        <div id="config" class="form"></div>
+        <div class="actions">
+            <button id="save" class="primary">保存配置</button>
+            <button id="reload">重载插件</button>
+            <span id="save-msg" class="muted"></span>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>审计日志</h2>
+        <div id="audit" class="audit"></div>
+    </section>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

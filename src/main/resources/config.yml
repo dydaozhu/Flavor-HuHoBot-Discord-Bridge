@@ -1,0 +1,136 @@
+# ============================================================
+#  Flavor-HuHoBot-Discord-Bridge
+#  基于 HuHoBot 的 Discord 桥接插件（风味 HuHoBot）
+#  Minecraft: Paper 1.21+   Java: 21
+# ============================================================
+
+config-version: 4
+language: zh_CN
+
+# ------------------------------------------------------------
+# Discord 机器人
+# ------------------------------------------------------------
+discord:
+  # 在 https://discord.com/developers/applications 创建应用后获取
+  # 必须开启：MESSAGE CONTENT INTENT、SERVER MEMBERS INTENT
+  token: ""
+  # 机器人所在服务器 ID（右键服务器图标 -> 复制服务器 ID）
+  guild-id: ""
+  channels:
+    # 游戏 -> Discord 的频道 ID；留空则关闭该方向
+    game-to-discord: ""
+    # Discord -> 游戏 的频道 ID；留空则关闭该方向
+    discord-to-game: ""
+    # AI Agent 回复发送频道 ID（留空则使用触发命令的频道；不再创建子区）
+    agent: ""
+    # 审计日志推送频道 ID（留空则不推送）
+    audit: ""
+  # 拥有管理权限的 Discord 角色 ID 列表（除 MANAGE_SERVER 权限外）
+  admin-role-ids: []
+  intents:
+    # 特权 intent，需在开发者后台开启；关闭后聊天桥接与成员查询会降级
+    message-content: true
+    members: true
+
+# ------------------------------------------------------------
+# 聊天桥接
+# ------------------------------------------------------------
+bridge:
+  enabled: true
+  # 游戏 -> Discord
+  from-game: "[MC] {name}: {message}"
+  # Discord -> 游戏
+  from-discord: "[DC] {name}: {message}"
+  # 忽略其它机器人与 Webhook 的消息，避免循环
+  ignore-bots: true
+  # 仅转发以该前缀开头的游戏消息，留空表示全部转发
+  start-with: ""
+  # 要求 Discord 用户先绑定 Minecraft 账号才转发其消息
+  link-required: false
+  events:
+    join: true
+    quit: true
+    join-format: "[MC] {name} 加入了服务器"
+    quit-format: "[MC] {name} 离开了服务器"
+
+# ------------------------------------------------------------
+# 账号绑定
+# ------------------------------------------------------------
+link:
+  # 绑定成功后自动加白名单
+  whitelist-on-link: true
+  whitelist-add-command: "whitelist add {player}"
+  whitelist-remove-command: "whitelist remove {player}"
+  # 查看白名单时执行的命令（Discord /whitelist list）；留空则直接读取 Bukkit 白名单
+  whitelist-list-command: "whitelist list"
+
+# ------------------------------------------------------------
+# 绑定与入服
+# ------------------------------------------------------------
+binding:
+  # 绑定只有两种模式：
+  # 1. force-bind: false —— Discord 执行 /bind <游戏ID> 直接绑定并加白名单
+  # 2. force-bind: true  —— 未绑定玩家进服被踢出并拿到 5 位验证码，
+  #    在 Discord 执行 /bind <验证码> 完成绑定后重新进服。
+  # 取消绑定统一使用 /unbind。
+  #
+  # 【注意】开启强制绑定后请关闭 Minecraft 自带白名单/其他白名单插件，
+  # 否则玩家会在登录阶段被白名单拦截，根本拿不到验证码。
+  force-bind: false
+
+  # 强制绑定踢出提示中展示的 Discord 服务器/频道/邀请链接，留空则不提示。
+  force-bind-groups: []
+
+  # 免验证名单：这些玩家无需绑定即可进入服务器（仍可主动绑定），每行一个玩家名。
+  verify-exempt: []
+
+# ------------------------------------------------------------
+# AI Agent
+# ------------------------------------------------------------
+agent:
+  enabled: false
+  # OpenAI 兼容接口地址，需包含版本段（如 https://api.openai.com/v1）
+  base-url: "https://api.openai.com/v1"
+  api-key: ""
+  model: "gpt-4o-mini"
+  # manual: 危险工具需管理员在 Discord 点击批准
+  # auto:   自动执行（只允许只读与低风险工具，危险工具仍然禁用）
+  mode: manual
+  max-steps: 15
+  max-context-tokens: 24000
+  # 每个 Discord 服务器每日 token 预算，<=0 表示不限制
+  daily-token-budget: 200000
+  # 是否允许发起者批准自己的请求（不建议）
+  allow-self-approval: false
+  # 审批卡片超时时间（秒）
+  approval-timeout-seconds: 300
+  temperature: 0.2
+
+# ------------------------------------------------------------
+# 安全
+# ------------------------------------------------------------
+security:
+  # blacklist: 只拦截 blocked-commands（默认）
+  # allowlist: 只允许 allowed-commands 中的命令
+  command-mode: blacklist
+  # 仅 allowlist 模式使用；默认留空
+  allowed-commands: []
+  # 任意位置出现这些词就拒绝，防止 /execute ... run op 之类的绕过
+  blocked-commands:
+    - op
+    - deop
+    - stop
+    - reload
+    - restart
+    - "whitelist off"
+    - ban-ip
+    - pardon-ip
+  max-command-length: 256
+
+# ------------------------------------------------------------
+# WebUI（默认仅监听本机）
+# ------------------------------------------------------------
+webui:
+  enabled: true
+  bind: "127.0.0.1"
+  port: 8080

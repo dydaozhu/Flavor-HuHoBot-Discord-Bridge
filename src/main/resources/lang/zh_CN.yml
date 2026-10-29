@@ -1,0 +1,88 @@
+prefix: "&8[&bFlavor&3Discord&8] &r"
+no-permission: "&c你没有权限执行此操作"
+player-only: "&c此命令只能由游戏内玩家执行"
+unknown-command: "&c未知子命令，使用 &e/flavorhuhobot help &c查看帮助"
+reloaded: "&a配置、语言、绑定与用量数据已重载，Discord 正在重新连接"
+
+discord-not-ready: "&cDiscord 机器人尚未连接，请检查 token、网络与 intent 设置"
+link-success: "&a绑定成功：&e{player}"
+link-already: "&e你已经绑定了角色 &6{player}&e，如需更换，请先执行 &f/unbind"
+link-player-taken: "&c该游戏角色已被其他 Discord 用户绑定"
+link-discord-taken: "&c该 Discord 用户已绑定角色 &6{player}"
+link-none: "&e你还没有绑定任何角色"
+link-removed: "&a已解除绑定"
+link-required: "&c请先绑定 Minecraft 账号后再聊天"
+force-bind-kick: "&c你尚未绑定 Minecraft 账号\n&e验证码：&f{code}\n&e请在 Discord 执行 &f/bind {code}\n&7Discord：{groups}\n&7绑定后重新进入服务器"
+bind-success: "&a绑定成功：&e{player}&a，请重新进入服务器"
+bind-invalid: "&c验证码无效或已使用"
+bind-expired: "&c验证码已过期，请重新进入服务器获取"
+bind-rate-limited: "&c尝试过于频繁，请稍后再试"
+
+agent-disabled: "&cAI Agent 未启用，请先在 config.yml 中开启 agent.enabled"
+agent-no-key: "&cAI Agent 未配置 base-url 或 api-key"
+agent-started: "&aAI 任务已开始"
+agent-stopped: "&e已请求停止当前 AI 任务"
+agent-busy: "&e你有一个任务正在运行，请使用 /agent stop 停止或等待完成"
+agent-context-cleared: "&aAI 上下文已清除"
+agent-context-busy: "&e当前有任务运行或等待审批，请先 /agent stop 再清除上下文"
+agent-no-channel-permission: "&c机器人没有在目标频道发送消息/嵌入链接的权限，请检查频道权限覆盖"
+agent-budget: "&c今日 AI token 预算已用尽，请联系管理员"
+agent-error: "&cAI 调用失败：{error}"
+agent-max-steps: "&e已达到最大执行步数，任务自动结束"
+
+approval-title: "需要管理员审批"
+approval-approved: "&a操作已批准执行"
+approval-rejected: "&c操作已被拒绝"
+approval-timeout: "&e审批超时，操作已自动拒绝"
+approval-no-permission: "&c你没有审批权限"
+approval-self: "&c不能批准自己发起的请求"
+approval-expired: "&c该审批已过期或不存在"
+
+console-executed: "&a命令已提交：&f{command}"
+console-denied: "&c命令被安全策略拒绝：{reason}"
+
+whitelist-added: "&a已添加白名单：&e{player}"
+whitelist-removed: "&a已移除白名单：&e{player}"
+whitelist-empty: "&e白名单为空"
+
+status-title: "服务器状态"
+status-server: "服务器"
+status-discord: "Discord"
+status-agent: "AI Agent"
+status-online: "在线玩家"
+status-links: "已绑定账号"
+status-tokens: "今日 token"
+
+help-title: "Flavor-HuHoBot-Discord-Bridge 帮助"
+help-line: "&e/bind <游戏ID或验证码> &7- 绑定 Minecraft 账号"
+tool-denied: "&c工具调用被拒绝：{reason}"
+
+command:
+  agent:
+    description: "AI 管理助手"
+    run: "执行一个 AI 任务"
+    task: "任务描述"
+    stop: "停止当前 AI 任务"
+    new: "清除当前 AI 上下文"
+  bind:
+    description: "绑定 Minecraft 账号"
+    value: "游戏ID（未开强制绑定）或 5 位验证码（开启强制绑定）"
+  unbind:
+    description: "解除 Minecraft 账号绑定"
+  status:
+    description: "查看服务器与机器人状态"
+  online:
+    description: "查看在线玩家"
+  whitelist:
+    description: "白名单管理"
+    add: "添加玩家"
+    remove: "移除玩家"
+    list: "列出白名单"
+    player: "玩家名"
+  console:
+    description: "执行控制台命令（管理员）"
+    command: "命令（不含前导 /）"
+  help:
+    description: "查看帮助"
+  reload:
+    description: "重载所有文件并重连机器人（管理员）"

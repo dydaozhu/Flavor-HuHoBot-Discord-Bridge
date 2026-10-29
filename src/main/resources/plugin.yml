@@ -1,0 +1,24 @@
+name: Flavor-HuHoBot-Discord-Bridge
+version: 1.0.0
+main: com.flavor.huhobot.FlavorDiscordBridge
+api-version: '1.21'
+author: dydaozhu
+website: https://modrinth.com/plugin/flavor-huhoBot-discord-bridge
+description: 基于HuHoBot的Discord桥接插件(风味HuHoBot)
+
+commands:
+  flavorhuhobot:
+    description: Flavor HuHoBot Discord Bridge 主命令
+    usage: /flavorhuhobot help
+    aliases: [fh, discord]
+
+permissions:
+  flavor-huhobot.admin:
+    description: 允许重载插件、执行控制台命令与白名单管理
+    default: op
+  flavor-huhobot.status:
+    description: 允许查看绑定状态与服务器状态
+    default: true
+  flavor-huhobot.bypass:
+    description: 绕过强制绑定检查
+    default: op
