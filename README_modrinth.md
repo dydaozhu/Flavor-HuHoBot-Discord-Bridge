@@ -4,7 +4,7 @@
 
 A Discord bridge and management plugin for Paper 1.21+, featuring two-way chat, account linking, whitelist sync, an AI Agent, and a local WebUI.
 
-[![Modrinth](https://img.shields.io/badge/Modrinth-Download-1bd96a?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/flavor-huhoBot-discord-bridge)
+![Modrinth](https://img.shields.io/badge/Modrinth-Download-1bd96a?style=for-the-badge&logo=modrinth&logoColor=white)
 [![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github)](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge)
 [![Issues](https://img.shields.io/badge/GitHub-Issues-181717?style=for-the-badge&logo=github)](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge/issues)
 ![Paper](https://img.shields.io/badge/Paper-1.21%2B-ffcc00?style=for-the-badge)
@@ -176,7 +176,6 @@ The legacy `links.json` file is migrated to `binds.json` automatically.
 
 ### Links
 
-- [Download on Modrinth](https://modrinth.com/plugin/flavor-huhoBot-discord-bridge)
 - [Source Code](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge)
 - [Issue Tracker](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge/issues)
 - [Full Documentation](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge)
@@ -354,7 +353,6 @@ config-version: 4
 
 ### 链接
 
-- [Modrinth 下载](https://modrinth.com/plugin/flavor-huhoBot-discord-bridge)
 - [源代码](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge)
 - [问题反馈](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge/issues)
 - [完整文档](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge)
