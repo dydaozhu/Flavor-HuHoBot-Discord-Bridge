@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /** 游戏内 /flavorhuhobot 命令（别名 /fh、/discord）。 */
 public final class DiscordCommand implements CommandExecutor, TabCompleter {
@@ -74,20 +75,20 @@ public final class DiscordCommand implements CommandExecutor, TabCompleter {
     }
 
     private void help(CommandSender sender) {
-        String text = plugin.messages().prefix() + "&r帮助\n"
-                + clickable("/fh unbind", "解除绑定") + "\n"
-                + clickable("/fh status", "查看状态") + "\n"
-                + clickable("/fh reload", "重载所有文件并重连机器人（管理员）") + "\n"
-                + clickable("/fh help", "查看帮助");
+        String text = plugin.messages().prefix() + "&r" + plugin.messages().get("help-header") + "\n"
+                + line("help-unbind") + "\n"
+                + line("help-status") + "\n"
+                + line("help-reload") + "\n"
+                + line("help-help");
         sender.sendMessage(Text.component(text));
     }
 
-    /** MiniMessage：点击命令文本会把命令放入聊天输入栏，而不是直接执行。 */
-    private static String clickable(String command, String description) {
-        return "<click:suggest_command:'" + command + "'>"
-                + "<hover:show_text:'点击填入命令'>"
-                + "<yellow>" + command + "</yellow>"
-                + "</hover></click> <gray>- " + description + "</gray>";
+    /** 从语言文件生成可点击的命令行；点击只填入输入栏，不执行。 */
+    private String line(String key) {
+        return plugin.messages().get("help-line-format", Map.of(
+                "command", plugin.messages().get(key + "-command"),
+                "description", plugin.messages().get(key + "-description"),
+                "hover", plugin.messages().get("help-hover")));
     }
 
     @Override

@@ -135,6 +135,7 @@ webui:
 | `security.command-mode` | `blacklist`（默认）或 `allowlist` |
 | `security.allowed-commands` | allowlist 模式下允许的命令 |
 | `security.blocked-commands` | 始终拦截的命令词 |
+| `motd.default-address` | Discord `/motd` 不填地址时查询的服务器，默认 `mc.hypixel.net` |
 | `webui.bind` / `webui.port` | WebUI 监听地址与端口 |
 
 ### 配置升级
@@ -142,7 +143,7 @@ webui:
 当前结构版本：
 
 ```yaml
-config-version: 4
+config-version: 5
 ```
 
 - 启动或重载时自动检查 `config-version`
@@ -150,6 +151,15 @@ config-version: 4
 - 不生成 `.bak` 文件，已有的 `config.yml.v*.bak` 会自动删除
 - 手动把 `config-version` 改低后执行 `/reload` 也会触发升级
 - v3 → v4 新增 `link.whitelist-list-command`
+- v4 → v5 仅更新版本号，无新增配置项
+
+语言文件也有独立的版本号：
+
+```yaml
+language-version: 1
+```
+
+插件会保留已有翻译，并自动补齐新版本新增的语言键。
 
 ---
 
@@ -224,6 +234,7 @@ binding:
 | `/unbind` | 解除绑定 | 所有人 |
 | `/status` | 服务器与机器人状态 | 所有人 |
 | `/online` | 在线玩家 | 所有人 |
+| `/motd [address]` | 查询 Minecraft 服务器 MOTD，留空使用默认地址 | 所有人 |
 | `/whitelist add\|remove\|list` | 白名单管理 | 管理员 |
 | `/console command:<命令>` | 执行控制台命令 | 管理员 |
 | `/help` | 帮助 | 所有人 |
@@ -473,4 +484,4 @@ pom.xml                             Maven 构建
 
 ---
 
-**当前版本：1.0.0**
+**当前版本：1.0.1**

@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -20,7 +23,7 @@ import java.util.List;
 final class ConfigUpgrader {
 
     /** 当前配置文件结构版本，与 config.yml 的 config-version 对应。 */
-    private static final int CURRENT_CONFIG_VERSION = 4;
+    private static final int CURRENT_CONFIG_VERSION = 5;
 
     private ConfigUpgrader() {
     }
@@ -31,6 +34,7 @@ final class ConfigUpgrader {
             return;
         }
         cleanupBackups(plugin);
+        ensureMotdSection(plugin, file);
 
         // 重新读取磁盘文件，确保手动修改的 config-version 能立即生效
         plugin.reloadConfig();
@@ -98,6 +102,83 @@ final class ConfigUpgrader {
                 plugin.getLogger().info("已删除旧配置备份: " + backup.getName());
             }
         }
+    }
+
+    /**
+     * 把 motd 段放到 AI Agent 与 WebUI 之间（security 之前）。
+     * 老配置没有该段时插入；已有但位置不对时移动，不改变 config-version。
+     */
+    private static void ensureMotdSection(FlavorDiscordBridge plugin, File file) {
+        try {
+            String text = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            List<String> lines = new ArrayList<>(Arrays.asList(text.split("\n", -1)));
+            int motd = findTopLevel(lines, "motd:");
+            int agent = findTopLevel(lines, "agent:");
+            int security = findTopLevel(lines, "security:");
+            if (motd >= 0 && agent >= 0 && motd > agent && (security < 0 || motd < security)) {
+                return;
+            }
+
+            List<String> block = new ArrayList<>();
+            if (motd >= 0) {
+                int blockStart = motd;
+                int removeStart = motd;
+                if (removeStart >= 1 && lines.get(removeStart - 1).contains("Discord /motd")) {
+                    removeStart--;
+                }
+                if (removeStart >= 3
+                        && lines.get(removeStart - 1).startsWith("# ---")
+                        && lines.get(removeStart - 2).contains("Discord /motd")
+                        && lines.get(removeStart - 3).startsWith("# ---")) {
+                    removeStart -= 3;
+                }
+                int end = motd + 1;
+                while (end < lines.size()) {
+                    String line = lines.get(end);
+                    if (line.isBlank() || line.startsWith(" ") || line.startsWith("\t")) {
+                        end++;
+                    } else {
+                        break;
+                    }
+                }
+                block.addAll(lines.subList(blockStart, end));
+                for (int i = end - 1; i >= removeStart; i--) {
+                    lines.remove(i);
+                }
+            } else {
+                block.add("motd:");
+                block.add("  default-address: \"mc.hypixel.net\"");
+                block.add("");
+            }
+            block.add(0, "# ------------------------------------------------------------");
+            block.add(1, "# Discord /motd 不填地址时查询的服务器");
+            block.add(2, "# ------------------------------------------------------------");
+
+            int insert = findTopLevel(lines, "security:");
+            if (insert < 0) {
+                insert = findTopLevel(lines, "webui:");
+            }
+            if (insert < 0) {
+                lines.addAll(block);
+            } else {
+                lines.addAll(insert, block);
+            }
+            Files.writeString(file.toPath(), String.join("\n", lines), StandardCharsets.UTF_8);
+            plugin.getLogger().info("已将 motd 配置迁移到 AI Agent 与 WebUI 之间");
+        } catch (Exception error) {
+            plugin.getLogger().warning("迁移 motd 配置失败: " + error.getMessage());
+        }
+    }
+
+    private static int findTopLevel(List<String> lines, String key) {
+        for (int i = 0; i < lines.size(); i++) {
+            String line = lines.get(i);
+            String clean = line.endsWith("\r") ? line.substring(0, line.length() - 1) : line;
+            if (clean.equals(key)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static boolean hasLegacyKeys(FileConfiguration config) {

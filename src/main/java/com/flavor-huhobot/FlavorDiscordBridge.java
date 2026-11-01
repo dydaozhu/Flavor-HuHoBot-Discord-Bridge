@@ -23,6 +23,7 @@ public final class FlavorDiscordBridge extends JavaPlugin {
     private DiscordBot discordBot;
     private AgentService agentService;
     private WebServer webServer;
+    private MotdClient motdClient;
 
     @Override
     public void onEnable() {
@@ -49,6 +50,7 @@ public final class FlavorDiscordBridge extends JavaPlugin {
         discordBot = new DiscordBot(this);
         agentService = new AgentService(this);
         webServer = new WebServer(this);
+        motdClient = new MotdClient();
 
         if (getCommand("flavorhuhobot") != null) {
             DiscordCommand executor = new DiscordCommand(this);
@@ -187,5 +189,9 @@ public final class FlavorDiscordBridge extends JavaPlugin {
 
     public WebServer webServer() {
         return webServer;
+    }
+
+    public MotdClient motdClient() {
+        return motdClient;
     }
 }

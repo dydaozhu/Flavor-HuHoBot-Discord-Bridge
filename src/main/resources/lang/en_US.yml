@@ -1,3 +1,4 @@
+language-version: 1
 prefix: "&8[&bFlavor&3Discord&8] &r"
 no-permission: "&cYou do not have permission to do that"
 player-only: "&cThis command can only be used by a player in game"
@@ -45,6 +46,18 @@ whitelist-added: "&aAdded to whitelist: &e{player}"
 whitelist-removed: "&aRemoved from whitelist: &e{player}"
 whitelist-empty: "&eThe whitelist is empty"
 
+motd-title: "Server MOTD"
+motd-address: "Address"
+motd-status: "Status"
+motd-online: "Online"
+motd-offline: "Offline"
+motd-players: "Players"
+motd-version: "Version"
+motd-delay: "Latency"
+motd-empty: "No MOTD"
+motd-no-address: "No default server address configured"
+motd-error: "Query failed: {error}"
+
 status-title: "Server status"
 status-server: "Server"
 status-discord: "Discord"
@@ -55,6 +68,17 @@ status-tokens: "Tokens today"
 
 help-title: "Flavor-HuHoBot-Discord-Bridge help"
 help-line: "&e/bind <player or code> &7- link your Minecraft account"
+help-header: "Help"
+help-hover: "Click to insert command"
+help-line-format: "<click:suggest_command:'{command}'><hover:show_text:'{hover}'><yellow>{command}</yellow></hover></click> <gray>- {description}</gray>"
+help-unbind-command: "/fh unbind"
+help-unbind-description: "Unlink account"
+help-status-command: "/fh status"
+help-status-description: "View status"
+help-reload-command: "/fh reload"
+help-reload-description: "Reload all files and reconnect the bot (admin)"
+help-help-command: "/fh help"
+help-help-description: "View help"
 tool-denied: "&cTool call denied: {reason}"
 
 command:
@@ -73,6 +97,9 @@ command:
     description: "View server and bot status"
   online:
     description: "View online players"
+  motd:
+    description: "Query a Minecraft server's MOTD"
+    address: "Server address; leave empty to use the default"
   whitelist:
     description: "Whitelist management"
     add: "Add a player"

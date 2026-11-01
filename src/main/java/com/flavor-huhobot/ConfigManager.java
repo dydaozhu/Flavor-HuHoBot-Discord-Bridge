@@ -127,6 +127,10 @@ public final class ConfigManager {
         return config.getString("link.whitelist-list-command", "whitelist list");
     }
 
+    public String motdDefaultAddress() {
+        return config.getString("motd.default-address", "mc.hypixel.net");
+    }
+
     // ------------------------------------------------------------------ Binding
 
     public boolean bindingForceBind() {

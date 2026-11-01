@@ -147,6 +147,7 @@ Full installation, permissions, configuration, and command reference:
 | `/unbind` | Unlink the account |
 | `/status` | Server status |
 | `/online` | Online players |
+| `/motd [address]` | Query a Minecraft server's MOTD; defaults to the configured address |
 | `/whitelist add\|remove\|list` | Whitelist management |
 | `/console command:<command>` | Run a console command |
 | `/reload` | Reload all files and reconnect the bot |
@@ -159,12 +160,20 @@ Aliases: `/fh`, `/discord`
 Current config version:
 
 ```yaml
-config-version: 4
+config-version: 5
 ```
 
 The plugin upgrades old configs automatically and preserves existing values. No `.bak` files are created.
 
 The legacy `links.json` file is migrated to `binds.json` automatically.
+
+Language files also have a version:
+
+```yaml
+language-version: 1
+```
+
+Existing translations are preserved and missing keys are added automatically.
 
 ### Compatibility
 
@@ -324,6 +333,7 @@ http://127.0.0.1:8080
 | `/unbind` | 解除绑定 |
 | `/status` | 服务器状态 |
 | `/online` | 在线玩家 |
+| `/motd [地址]` | 查询 Minecraft 服务器 MOTD，留空使用默认地址 |
 | `/whitelist add\|remove\|list` | 白名单管理 |
 | `/console command:<命令>` | 执行控制台命令 |
 | `/reload` | 重载所有文件并重连机器人 |
@@ -336,12 +346,20 @@ http://127.0.0.1:8080
 当前配置版本：
 
 ```yaml
-config-version: 4
+config-version: 5
 ```
 
 插件会自动升级旧配置并保留已填写的值，不生成 `.bak` 备份。
 
 旧版 `links.json` 会自动迁移为 `binds.json`。
+
+语言文件也有版本号：
+
+```yaml
+language-version: 1
+```
+
+插件会保留已有翻译，并自动补齐缺失的语言键。
 
 ### 兼容性
 
@@ -365,4 +383,4 @@ config-version: 4
 
 ---
 
-**Current version / 当前版本：1.0.0**
+**Current version / 当前版本：1.0.1**

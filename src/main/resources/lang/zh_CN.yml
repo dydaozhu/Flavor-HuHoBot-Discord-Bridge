@@ -1,3 +1,4 @@
+language-version: 1
 prefix: "&8[&bFlavor&3Discord&8] &r"
 no-permission: "&c你没有权限执行此操作"
 player-only: "&c此命令只能由游戏内玩家执行"
@@ -45,6 +46,18 @@ whitelist-added: "&a已添加白名单：&e{player}"
 whitelist-removed: "&a已移除白名单：&e{player}"
 whitelist-empty: "&e白名单为空"
 
+motd-title: "服务器 MOTD"
+motd-address: "地址"
+motd-status: "状态"
+motd-online: "在线"
+motd-offline: "离线"
+motd-players: "玩家"
+motd-version: "版本"
+motd-delay: "延迟"
+motd-empty: "无 MOTD"
+motd-no-address: "未配置默认服务器地址"
+motd-error: "查询失败：{error}"
+
 status-title: "服务器状态"
 status-server: "服务器"
 status-discord: "Discord"
@@ -55,6 +68,17 @@ status-tokens: "今日 token"
 
 help-title: "Flavor-HuHoBot-Discord-Bridge 帮助"
 help-line: "&e/bind <游戏ID或验证码> &7- 绑定 Minecraft 账号"
+help-header: "帮助"
+help-hover: "点击填入命令"
+help-line-format: "<click:suggest_command:'{command}'><hover:show_text:'{hover}'><yellow>{command}</yellow></hover></click> <gray>- {description}</gray>"
+help-unbind-command: "/fh unbind"
+help-unbind-description: "解除绑定"
+help-status-command: "/fh status"
+help-status-description: "查看状态"
+help-reload-command: "/fh reload"
+help-reload-description: "重载所有文件并重连机器人（管理员）"
+help-help-command: "/fh help"
+help-help-description: "查看帮助"
 tool-denied: "&c工具调用被拒绝：{reason}"
 
 command:
@@ -73,6 +97,9 @@ command:
     description: "查看服务器与机器人状态"
   online:
     description: "查看在线玩家"
+  motd:
+    description: "查询 Minecraft 服务器的 MOTD"
+    address: "服务器地址，留空使用默认地址"
   whitelist:
     description: "白名单管理"
     add: "添加玩家"

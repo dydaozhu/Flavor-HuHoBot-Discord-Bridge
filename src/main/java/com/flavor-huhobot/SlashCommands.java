@@ -43,6 +43,8 @@ public final class SlashCommands extends ListenerAdapter {
         commands.add(Commands.slash("unbind", i18n.discord("command.unbind.description")));
         commands.add(Commands.slash("status", i18n.discord("command.status.description")));
         commands.add(Commands.slash("online", i18n.discord("command.online.description")));
+        commands.add(Commands.slash("motd", i18n.discord("command.motd.description"))
+                .addOption(OptionType.STRING, "address", i18n.discord("command.motd.address"), false));
         commands.add(Commands.slash("whitelist", i18n.discord("command.whitelist.description")).addSubcommands(
                 new SubcommandData("add", i18n.discord("command.whitelist.add"))
                         .addOption(OptionType.STRING, "player", i18n.discord("command.whitelist.player"), true),
@@ -75,6 +77,7 @@ public final class SlashCommands extends ListenerAdapter {
             case "unbind" -> handleUnbind(event);
             case "status" -> handleStatus(event);
             case "online" -> handleOnline(event);
+            case "motd" -> handleMotd(event);
             case "whitelist" -> handleWhitelist(event);
             case "console" -> handleConsole(event);
             case "help" -> handleHelp(event);
@@ -237,6 +240,64 @@ public final class SlashCommands extends ListenerAdapter {
         event.replyEmbeds(embed).queue();
     }
 
+    // ------------------------------------------------------------------ motd
+
+    private void handleMotd(SlashCommandInteractionEvent event) {
+        OptionMapping option = event.getOption("address");
+        String address = option == null ? "" : option.getAsString().trim();
+        if (address.isBlank()) {
+            address = plugin.config().motdDefaultAddress();
+        }
+        if (address == null || address.isBlank()) {
+            event.reply(plugin.messages().discord("motd-no-address")).setEphemeral(true).queue();
+            return;
+        }
+
+        String target = address;
+        event.deferReply(true).queue();
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                MotdClient.Result result = plugin.motdClient().query(target);
+                EmbedBuilder embed = new EmbedBuilder()
+                        .setTitle(plugin.messages().discord("motd-title"))
+                        .setColor(result.online() ? 0x57F287 : 0xED4245)
+                        .addField(plugin.messages().discord("motd-address"),
+                                Text.truncate(result.address(), 200), true)
+                        .addField(plugin.messages().discord("motd-status"),
+                                plugin.messages().discord(result.online() ? "motd-online" : "motd-offline"), true);
+
+                if (result.online()) {
+                    embed.addField(plugin.messages().discord("motd-players"),
+                            result.onlinePlayers() + " / " + result.maxPlayers(), true);
+                    if (!result.version().isBlank()) {
+                        embed.addField(plugin.messages().discord("motd-version"),
+                                Text.truncate(result.version(), 200), true);
+                    }
+                    if (result.delay() > 0) {
+                        embed.addField(plugin.messages().discord("motd-delay"),
+                                result.delay() + " ms", true);
+                    }
+                }
+
+                String body = result.motd() == null || result.motd().isBlank()
+                        ? plugin.messages().discord("motd-empty")
+                        : Text.stripColorCodes(result.motd());
+                embed.setDescription("```\n" + Text.truncate(body, 1500) + "\n```");
+                if (!result.online() && !result.error().isBlank()) {
+                    embed.setFooter(Text.truncate(Text.stripColorCodes(result.error()), 200));
+                }
+                event.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
+            } catch (Throwable error) {
+                EmbedBuilder embed = new EmbedBuilder()
+                        .setTitle(plugin.messages().discord("motd-title"))
+                        .setColor(0xED4245)
+                        .setDescription(plugin.messages().discord("motd-error",
+                                Map.of("error", error.getMessage() == null ? "unknown" : error.getMessage())));
+                event.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
+            }
+        });
+    }
+
     // ------------------------------------------------------------------ whitelist
 
     private void handleWhitelist(SlashCommandInteractionEvent event) {
@@ -344,6 +405,7 @@ public final class SlashCommands extends ListenerAdapter {
                         `/unbind` - 解除绑定
                         `/status` - 服务器与机器人状态
                         `/online` - 在线玩家
+                        `/motd [地址]` - 查询 Minecraft 服务器的 MOTD
                         `/whitelist add|remove|list` - 白名单管理（管理员）
                         `/console <command>` - 执行控制台命令（管理员）
                         `/reload` - 重载所有文件并重连机器人（管理员）

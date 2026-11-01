@@ -14,6 +14,7 @@ import java.util.Map;
 /** 轻量 i18n：从 messages_<language>.yml 读取，缺失 key 回落到内置中文默认值。 */
 public final class Messages {
 
+    private static final int CURRENT_LANGUAGE_VERSION = 1;
     private static final Map<String, String> DEFAULTS = defaults();
 
     private final FlavorDiscordBridge plugin;
@@ -33,12 +34,13 @@ public final class Messages {
             langDirectory.mkdirs();
         }
         // 先用 jar 内语言文件补齐新增的键（例如 Discord 命令描述）
+        YamlConfiguration resource = null;
         try (InputStream stream = plugin.getResource("lang/" + language + ".yml")) {
             if (stream != null) {
-                YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
+                resource = YamlConfiguration.loadConfiguration(
                         new InputStreamReader(stream, StandardCharsets.UTF_8));
-                for (String key : defaults.getKeys(true)) {
-                    String value = defaults.getString(key);
+                for (String key : resource.getKeys(true)) {
+                    String value = resource.getString(key);
                     if (value != null) {
                         values.put(key, clean(value));
                     }
@@ -58,6 +60,27 @@ public final class Messages {
         }
         if (file.isFile()) {
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+            int languageVersion = yaml.getInt("language-version", 0);
+            if (languageVersion > CURRENT_LANGUAGE_VERSION) {
+                plugin.getLogger().warning("language-version=" + languageVersion
+                        + " 高于插件支持的 " + CURRENT_LANGUAGE_VERSION + "，已跳过语言文件升级。");
+            } else if (languageVersion < CURRENT_LANGUAGE_VERSION) {
+                if (resource != null) {
+                    for (String key : resource.getKeys(true)) {
+                        if (!yaml.contains(key)) {
+                            yaml.set(key, resource.get(key));
+                        }
+                    }
+                }
+                yaml.set("language-version", CURRENT_LANGUAGE_VERSION);
+                try {
+                    yaml.save(file);
+                    plugin.getLogger().info("语言文件已升级到 v" + CURRENT_LANGUAGE_VERSION
+                            + "，已保留原有翻译。");
+                } catch (Exception error) {
+                    plugin.getLogger().warning("保存语言文件失败: " + error.getMessage());
+                }
+            }
             for (String key : yaml.getKeys(true)) {
                 String value = yaml.getString(key);
                 if (value != null) {
@@ -135,6 +158,7 @@ public final class Messages {
     private static Map<String, String> defaults() {
         Map<String, String> map = new HashMap<>();
         map.put("prefix", "&8[&bFlavor&3Discord&8] &r");
+        map.put("language-version", "1");
         map.put("no-permission", "&c你没有权限执行此操作");
         map.put("player-only", "&c此命令只能由游戏内玩家执行");
         map.put("unknown-command", "&c未知子命令，使用 &e/flavorhuhobot help &c查看帮助");
@@ -175,6 +199,17 @@ public final class Messages {
         map.put("whitelist-added", "&a已添加白名单：&e{player}");
         map.put("whitelist-removed", "&a已移除白名单：&e{player}");
         map.put("whitelist-empty", "&e白名单为空");
+        map.put("motd-title", "服务器 MOTD");
+        map.put("motd-address", "地址");
+        map.put("motd-status", "状态");
+        map.put("motd-online", "在线");
+        map.put("motd-offline", "离线");
+        map.put("motd-players", "玩家");
+        map.put("motd-version", "版本");
+        map.put("motd-delay", "延迟");
+        map.put("motd-empty", "无 MOTD");
+        map.put("motd-no-address", "未配置默认服务器地址");
+        map.put("motd-error", "查询失败：{error}");
         map.put("status-title", "服务器状态");
         map.put("status-server", "服务器");
         map.put("status-discord", "Discord");
@@ -184,6 +219,17 @@ public final class Messages {
         map.put("status-tokens", "今日 token");
         map.put("help-title", "Flavor-HuHoBot-Discord-Bridge 帮助");
         map.put("help-line", "&e/bind <游戏ID或验证码> &7- 绑定 Minecraft 账号");
+        map.put("help-header", "帮助");
+        map.put("help-hover", "点击填入命令");
+        map.put("help-line-format", "<click:suggest_command:'{command}'><hover:show_text:'{hover}'><yellow>{command}</yellow></hover></click> <gray>- {description}</gray>");
+        map.put("help-unbind-command", "/fh unbind");
+        map.put("help-unbind-description", "解除绑定");
+        map.put("help-status-command", "/fh status");
+        map.put("help-status-description", "查看状态");
+        map.put("help-reload-command", "/fh reload");
+        map.put("help-reload-description", "重载所有文件并重连机器人（管理员）");
+        map.put("help-help-command", "/fh help");
+        map.put("help-help-description", "查看帮助");
         map.put("tool-denied", "&c工具调用被拒绝：{reason}");
         map.put("command.agent.description", "AI 管理助手");
         map.put("command.agent.run", "执行一个 AI 任务");
@@ -195,6 +241,8 @@ public final class Messages {
         map.put("command.unbind.description", "解除 Minecraft 账号绑定");
         map.put("command.status.description", "查看服务器与机器人状态");
         map.put("command.online.description", "查看在线玩家");
+        map.put("command.motd.description", "查询 Minecraft 服务器的 MOTD");
+        map.put("command.motd.address", "服务器地址，留空使用默认地址");
         map.put("command.whitelist.description", "白名单管理");
         map.put("command.whitelist.add", "添加玩家");
         map.put("command.whitelist.remove", "移除玩家");
