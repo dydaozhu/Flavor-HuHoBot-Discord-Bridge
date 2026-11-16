@@ -115,6 +115,10 @@ public final class ConfigManager {
         return config.getBoolean("link.whitelist-on-link", true);
     }
 
+    public int linkMaxAccounts() {
+        return Math.max(1, config.getInt("link.max-accounts", 1));
+    }
+
     public String whitelistAddCommand() {
         return config.getString("link.whitelist-add-command", "whitelist add {player}");
     }

@@ -143,8 +143,10 @@ Full installation, permissions, configuration, and command reference:
 | `/agent run task:<task>` | Run an AI task |
 | `/agent new` | Clear AI context |
 | `/agent stop` | Stop the current task |
-| `/bind value:<Minecraft ID or code>` | Link an account |
-| `/unbind` | Unlink the account |
+| `/bind value:<Minecraft ID or code>` | Link an account (multiple allowed) |
+| `/unbind [Minecraft ID]` | Unlink a specific account |
+| `/lock [Minecraft ID]` | Lock an account and block it from joining |
+| `/unlock [Minecraft ID]` | Unlock an account |
 | `/status` | Server status |
 | `/online` | Online players |
 | `/motd [address]` | Query a Minecraft server's MOTD; defaults to the configured address |
@@ -160,7 +162,7 @@ Aliases: `/fh`, `/discord`
 Current config version:
 
 ```yaml
-config-version: 5
+config-version: 6
 ```
 
 The plugin upgrades old configs automatically and preserves existing values. No `.bak` files are created.
@@ -170,7 +172,7 @@ The legacy `links.json` file is migrated to `binds.json` automatically.
 Language files also have a version:
 
 ```yaml
-language-version: 1
+language-version: 2
 ```
 
 Existing translations are preserved and missing keys are added automatically.
@@ -329,8 +331,10 @@ http://127.0.0.1:8080
 | `/agent run task:<任务>` | 执行 AI 任务 |
 | `/agent new` | 清除 AI 上下文 |
 | `/agent stop` | 停止当前任务 |
-| `/bind value:<游戏ID或验证码>` | 绑定账号 |
-| `/unbind` | 解除绑定 |
+| `/bind value:<游戏ID或验证码>` | 绑定账号，可绑定多个 |
+| `/unbind [游戏ID]` | 解除指定账号绑定 |
+| `/lock [游戏ID]` | 锁定账号，禁止进入服务器 |
+| `/unlock [游戏ID]` | 解锁账号 |
 | `/status` | 服务器状态 |
 | `/online` | 在线玩家 |
 | `/motd [地址]` | 查询 Minecraft 服务器 MOTD，留空使用默认地址 |
@@ -346,7 +350,7 @@ http://127.0.0.1:8080
 当前配置版本：
 
 ```yaml
-config-version: 5
+config-version: 6
 ```
 
 插件会自动升级旧配置并保留已填写的值，不生成 `.bak` 备份。
@@ -356,7 +360,7 @@ config-version: 5
 语言文件也有版本号：
 
 ```yaml
-language-version: 1
+language-version: 2
 ```
 
 插件会保留已有翻译，并自动补齐缺失的语言键。
@@ -383,4 +387,4 @@ language-version: 1
 
 ---
 
-**Current version / 当前版本：1.0.1**
+**Current version / 当前版本：1.0.2**

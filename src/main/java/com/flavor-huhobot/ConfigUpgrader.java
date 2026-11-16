@@ -23,7 +23,7 @@ import java.util.List;
 final class ConfigUpgrader {
 
     /** 当前配置文件结构版本，与 config.yml 的 config-version 对应。 */
-    private static final int CURRENT_CONFIG_VERSION = 5;
+    private static final int CURRENT_CONFIG_VERSION = 6;
 
     private ConfigUpgrader() {
     }
@@ -83,6 +83,9 @@ final class ConfigUpgrader {
         }
         if (from < 4) {
             migrateToV4(config);
+        }
+        if (from < 6) {
+            migrateToV6(config);
         }
 
         config.set("config-version", CURRENT_CONFIG_VERSION);
@@ -229,6 +232,13 @@ final class ConfigUpgrader {
     private static void migrateToV4(FileConfiguration config) {
         if (config.getString("link.whitelist-list-command", "").isBlank()) {
             config.set("link.whitelist-list-command", "whitelist list");
+        }
+    }
+
+    /** v5 -> v6：新增每个 Discord 用户的最大绑定数。 */
+    private static void migrateToV6(FileConfiguration config) {
+        if (!config.contains("link.max-accounts")) {
+            config.set("link.max-accounts", 1);
         }
     }
 }

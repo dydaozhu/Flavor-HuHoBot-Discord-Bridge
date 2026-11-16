@@ -14,7 +14,7 @@ import java.time.Duration;
 /** motd.txssb.cn 查询客户端。 */
 public final class MotdClient {
 
-    private static final String ENDPOINT = "https://motd.txssb.cn/api/status";
+    private static final String ENDPOINT = "https://motd.minebbs.com/api/status";
 
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -62,7 +62,7 @@ public final class MotdClient {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                 .timeout(Duration.ofSeconds(15))
                 .header("Accept", "application/json")
-                .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.1")
+                .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.2")
                 .GET()
                 .build();
         HttpResponse<String> response = http.send(request,
@@ -82,7 +82,7 @@ public final class MotdClient {
         int maxPlayers = root.path("players").path("max").asInt(0);
         long delay = root.path("delay").asLong(0);
         String error = root.path("error").asText("");
-        String queried = root.path("host").asText(address);
+        String queried = root.path("resolved").asText(root.path("host").asText(address));
         return new Result(queried, online, motd, version, onlinePlayers, maxPlayers, delay, error);
     }
 

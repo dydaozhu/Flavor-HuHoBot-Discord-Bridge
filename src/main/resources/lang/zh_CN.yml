@@ -1,4 +1,4 @@
-language-version: 1
+language-version: 2
 prefix: "&8[&bFlavor&3Discord&8] &r"
 no-permission: "&c你没有权限执行此操作"
 player-only: "&c此命令只能由游戏内玩家执行"
@@ -18,6 +18,17 @@ bind-success: "&a绑定成功：&e{player}&a，请重新进入服务器"
 bind-invalid: "&c验证码无效或已使用"
 bind-expired: "&c验证码已过期，请重新进入服务器获取"
 bind-rate-limited: "&c尝试过于频繁，请稍后再试"
+bind-code-required: "&c请输入游戏内拿到的 5 位验证码"
+bind-name-invalid: "&c游戏 ID 不合法（1-16 位字母、数字或下划线）"
+bind-limit: "&c一个 Discord 账号最多只能绑定 {max} 个游戏账号"
+bind-select-account: "&e你绑定了多个账号，请指定游戏ID"
+bind-not-owned: "&c你没有绑定该游戏账号"
+unbind-success: "&a已解除绑定：&e{player}"
+lock-success: "&a已锁定账号：&e{player}"
+unlock-success: "&a已解锁账号：&e{player}"
+lock-already: "&e账号 &6{player}&e 已经是锁定状态"
+unlock-already: "&e账号 &6{player}&e 已经是解锁状态"
+lock-kick: "&c你的游戏账号已被锁定，无法进入服务器"
 
 agent-disabled: "&cAI Agent 未启用，请先在 config.yml 中开启 agent.enabled"
 agent-no-key: "&cAI Agent 未配置 base-url 或 api-key"
@@ -89,10 +100,17 @@ command:
     stop: "停止当前 AI 任务"
     new: "清除当前 AI 上下文"
   bind:
-    description: "绑定 Minecraft 账号"
+    description: "绑定 Minecraft 账号，可绑定多个"
     value: "游戏ID（未开强制绑定）或 5 位验证码（开启强制绑定）"
   unbind:
-    description: "解除 Minecraft 账号绑定"
+    description: "解除指定游戏账号绑定"
+    value: "游戏ID（只有一个账号时可留空）"
+  lock:
+    description: "锁定已绑定账号，禁止其进入服务器"
+    value: "游戏ID（只有一个账号时可留空）"
+  unlock:
+    description: "解锁已绑定账号"
+    value: "游戏ID（只有一个账号时可留空）"
   status:
     description: "查看服务器与机器人状态"
   online:

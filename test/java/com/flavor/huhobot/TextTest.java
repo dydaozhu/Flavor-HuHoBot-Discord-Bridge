@@ -45,6 +45,11 @@ class TextTest {
     }
 
     @Test
+    void stripsMiniMessageTags() {
+        assertEquals("对的", Text.stripMiniMessage("<green>对的</green>"));
+    }
+
+    @Test
     void parsesMiniMessage() {
         var component = Text.component("<red>Hello</red>");
         assertEquals("Hello", Text.plain(component));

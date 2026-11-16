@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /** Bukkit 事件监听。 */
@@ -19,6 +20,18 @@ public final class McChatListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChat(AsyncChatEvent event) {
         plugin.chatBridge().onMcChat(event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onLogin(PlayerLoginEvent event) {
+        LinkStore.Link link = plugin.links().byUuid(event.getPlayer().getUniqueId().toString());
+        if (link == null) {
+            link = plugin.links().byName(event.getPlayer().getName());
+        }
+        if (link != null && link.locked()) {
+            event.disallow(PlayerLoginEvent.Result.KICK_OTHER,
+                    Text.component(plugin.messages().getPrefixed("lock-kick")));
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

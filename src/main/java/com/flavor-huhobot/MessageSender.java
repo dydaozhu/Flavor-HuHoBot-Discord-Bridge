@@ -25,7 +25,7 @@ public final class MessageSender {
                 plugin.getLogger().warning("找不到 Discord 频道: " + channelId);
                 return;
             }
-            String clean = Text.stripColorCodes(text);
+            String clean = Text.stripColorCodes(Text.stripMiniMessage(text));
             for (String part : Text.split(clean, MAX_CHARS)) {
                 if (part.isBlank()) {
                     continue;

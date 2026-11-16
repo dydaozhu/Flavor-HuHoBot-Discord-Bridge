@@ -10,7 +10,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,22 +21,25 @@ import java.util.concurrent.ConcurrentHashMap;
 /** Discord 用户与 Minecraft 账号的绑定关系，落盘为 binds.json。 */
 public final class LinkStore {
 
-    public record Link(String discordId, String mcUuid, String mcName, long linkedAt) {
+    public record Link(String discordId, String mcUuid, String mcName, long linkedAt, boolean locked) {
+        public Link(String discordId, String mcUuid, String mcName, long linkedAt) {
+            this(discordId, mcUuid, mcName, linkedAt, false);
+        }
     }
 
     private final File file;
-    private final Map<String, Link> byDiscord = new ConcurrentHashMap<>();
     private final Map<String, Link> byUuid = new ConcurrentHashMap<>();
     private final Map<String, Link> byName = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, Link>> byDiscord = new ConcurrentHashMap<>();
 
     public LinkStore(File file) {
         this.file = file;
     }
 
     public synchronized void load() {
-        byDiscord.clear();
         byUuid.clear();
         byName.clear();
+        byDiscord.clear();
         if (!file.isFile()) {
             return;
         }
@@ -47,7 +53,8 @@ public final class LinkStore {
                         node.path("discordId").asText(),
                         node.path("mcUuid").asText(),
                         node.path("mcName").asText(),
-                        node.path("linkedAt").asLong()
+                        node.path("linkedAt").asLong(),
+                        node.path("locked").asBoolean(false)
                 );
                 if (!link.discordId().isBlank() && !link.mcName().isBlank()) {
                     index(link);
@@ -60,12 +67,13 @@ public final class LinkStore {
 
     public synchronized void save() {
         ArrayNode array = Json.arr();
-        for (Link link : byDiscord.values()) {
+        for (Link link : all()) {
             ObjectNode node = array.addObject();
             node.put("discordId", link.discordId());
             node.put("mcUuid", link.mcUuid());
             node.put("mcName", link.mcName());
             node.put("linkedAt", link.linkedAt());
+            node.put("locked", link.locked());
         }
         File parent = file.getParentFile();
         if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
@@ -85,51 +93,113 @@ public final class LinkStore {
     }
 
     public synchronized void put(Link link) {
-        removeByDiscord(link.discordId());
-        removeByUuid(link.mcUuid());
-        removeByName(link.mcName());
+        Link oldUuid = byUuid.get(link.mcUuid());
+        if (oldUuid != null) {
+            removeFromDiscord(oldUuid);
+        }
+        Link oldName = byName.get(key(link.mcName()));
+        if (oldName != null) {
+            removeFromDiscord(oldName);
+        }
+        byUuid.remove(link.mcUuid());
+        byName.remove(key(link.mcName()));
+
+        byDiscord.computeIfAbsent(link.discordId(), ignored -> new ConcurrentHashMap<>())
+                .put(linkKey(link), link);
         index(link);
         save();
     }
 
+    /** 移除该 Discord 用户的全部绑定。 */
     public synchronized boolean removeByDiscord(String discordId) {
-        Link removed = byDiscord.remove(discordId);
-        if (removed == null) {
+        Map<String, Link> links = byDiscord.remove(discordId);
+        if (links == null || links.isEmpty()) {
             return false;
         }
-        byUuid.remove(removed.mcUuid());
-        byName.remove(key(removed.mcName()));
+        for (Link link : links.values()) {
+            byUuid.remove(link.mcUuid());
+            byName.remove(key(link.mcName()));
+        }
+        save();
+        return true;
+    }
+
+    /** 移除指定 Discord 用户的一个游戏账号。 */
+    public synchronized boolean removeLink(String discordId, String mcUuidOrName) {
+        Map<String, Link> links = byDiscord.get(discordId);
+        if (links == null) {
+            return false;
+        }
+        Link target = null;
+        for (Link link : links.values()) {
+            if (link.mcUuid().equalsIgnoreCase(mcUuidOrName)
+                    || link.mcName().equalsIgnoreCase(mcUuidOrName)) {
+                target = link;
+                break;
+            }
+        }
+        if (target == null) {
+            return false;
+        }
+        links.remove(linkKey(target));
+        if (links.isEmpty()) {
+            byDiscord.remove(discordId);
+        }
+        byUuid.remove(target.mcUuid());
+        byName.remove(key(target.mcName()));
         save();
         return true;
     }
 
     public synchronized boolean removeByUuid(String uuid) {
-        for (Link link : byDiscord.values()) {
-            if (link.mcUuid().equals(uuid)) {
-                return removeByDiscord(link.discordId());
+        Link link = byUuid.get(uuid);
+        return link != null && removeLink(link.discordId(), link.mcUuid());
+    }
+
+    public synchronized boolean setLocked(String discordId, String mcUuid, boolean locked) {
+        Map<String, Link> links = byDiscord.get(discordId);
+        if (links == null) {
+            return false;
+        }
+        Link link = links.get(mcUuid);
+        if (link == null) {
+            for (Link candidate : links.values()) {
+                if (candidate.mcUuid().equalsIgnoreCase(mcUuid)
+                        || candidate.mcName().equalsIgnoreCase(mcUuid)) {
+                    link = candidate;
+                    break;
+                }
             }
         }
-        return false;
-    }
-
-    private void removeByUuid(String uuid, boolean save) {
-        Link removed = byUuid.remove(uuid);
-        if (removed != null) {
-            byDiscord.remove(removed.discordId());
-            byName.remove(key(removed.mcName()));
+        if (link == null) {
+            return false;
         }
+        Link updated = new Link(link.discordId(), link.mcUuid(), link.mcName(), link.linkedAt(), locked);
+        links.put(linkKey(link), updated);
+        index(updated);
+        save();
+        return true;
     }
 
-    private void removeByName(String name) {
-        Link removed = byName.remove(key(name));
-        if (removed != null) {
-            byDiscord.remove(removed.discordId());
-            byUuid.remove(removed.mcUuid());
-        }
-    }
-
+    /** 兼容旧调用：返回该 Discord 用户最早绑定的账号。 */
     public Link byDiscord(String discordId) {
-        return discordId == null ? null : byDiscord.get(discordId);
+        List<Link> links = byDiscordAll(discordId);
+        return links.stream().min(Comparator.comparingLong(Link::linkedAt)).orElse(null);
+    }
+
+    public List<Link> byDiscordAll(String discordId) {
+        if (discordId == null) {
+            return List.of();
+        }
+        Map<String, Link> links = byDiscord.get(discordId);
+        return links == null ? List.of() : links.values().stream()
+                .sorted(Comparator.comparingLong(Link::linkedAt))
+                .toList();
+    }
+
+    public int countByDiscord(String discordId) {
+        Map<String, Link> links = byDiscord.get(discordId);
+        return links == null ? 0 : links.size();
     }
 
     public Link byUuid(String uuid) {
@@ -141,19 +211,43 @@ public final class LinkStore {
     }
 
     public Collection<Link> all() {
-        return byDiscord.values();
+        List<Link> links = new ArrayList<>();
+        for (Map<String, Link> entry : byDiscord.values()) {
+            links.addAll(entry.values());
+        }
+        return links;
     }
 
     public int size() {
-        return byDiscord.size();
+        int total = 0;
+        for (Map<String, Link> entry : byDiscord.values()) {
+            total += entry.size();
+        }
+        return total;
     }
 
     private void index(Link link) {
-        byDiscord.put(link.discordId(), link);
+        byDiscord.computeIfAbsent(link.discordId(), ignored -> new ConcurrentHashMap<>())
+                .put(linkKey(link), link);
         if (!link.mcUuid().isBlank()) {
             byUuid.put(link.mcUuid(), link);
         }
         byName.put(key(link.mcName()), link);
+    }
+
+    private void removeFromDiscord(Link link) {
+        Map<String, Link> links = byDiscord.get(link.discordId());
+        if (links == null) {
+            return;
+        }
+        links.remove(linkKey(link));
+        if (links.isEmpty()) {
+            byDiscord.remove(link.discordId());
+        }
+    }
+
+    private static String linkKey(Link link) {
+        return link.mcUuid().isBlank() ? key(link.mcName()) : link.mcUuid();
     }
 
     private static String key(String name) {

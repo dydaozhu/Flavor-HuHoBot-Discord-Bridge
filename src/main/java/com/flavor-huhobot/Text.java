@@ -119,6 +119,15 @@ public final class Text {
                 .replaceAll("(?i)&#[0-9A-F]{6}", "");
     }
 
+    /** 去掉 MiniMessage 标签，防止游戏聊天里的 <green> 原样出现在 Discord。 */
+    public static String stripMiniMessage(String input) {
+        if (input == null) {
+            return "";
+        }
+        return input.replaceAll(
+                "(?i)</?(?:[a-z][a-z0-9_]*(?::[^>]*)?|#[0-9a-f]{6})>", "");
+    }
+
     /** 按行切分，单条不超过 max 个字符；超长单行会硬切。 */
     public static List<String> split(String content, int max) {
         List<String> result = new ArrayList<>();

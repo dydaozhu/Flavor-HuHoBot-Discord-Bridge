@@ -4,7 +4,7 @@
 #  Minecraft: Paper 1.21+   Java: 21
 # ============================================================
 
-config-version: 5
+config-version: 6
 language: zh_CN
 
 # ------------------------------------------------------------
@@ -59,6 +59,8 @@ bridge:
 link:
   # 绑定成功后自动加白名单
   whitelist-on-link: true
+  # 每个 Discord 用户最多可绑定的游戏账号数量
+  max-accounts: 1
   whitelist-add-command: "whitelist add {player}"
   whitelist-remove-command: "whitelist remove {player}"
   # 查看白名单时执行的命令（Discord /whitelist list）；留空则直接读取 Bukkit 白名单

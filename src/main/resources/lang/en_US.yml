@@ -1,4 +1,4 @@
-language-version: 1
+language-version: 2
 prefix: "&8[&bFlavor&3Discord&8] &r"
 no-permission: "&cYou do not have permission to do that"
 player-only: "&cThis command can only be used by a player in game"
@@ -18,6 +18,17 @@ bind-success: "&aLinked &e{player}&a, please rejoin the server"
 bind-invalid: "&cInvalid or already used code"
 bind-expired: "&cThe code has expired. Rejoin to get a new one"
 bind-rate-limited: "&cToo many attempts. Try again later"
+bind-code-required: "&cEnter the 5-digit code from the server"
+bind-name-invalid: "&cInvalid player ID (1-16 letters, numbers or underscores)"
+bind-limit: "&cA Discord account can link at most {max} Minecraft accounts"
+bind-select-account: "&eYou have multiple linked accounts; specify the Minecraft ID"
+bind-not-owned: "&cYou have not linked that Minecraft account"
+unbind-success: "&aUnlinked: &e{player}"
+lock-success: "&aLocked account: &e{player}"
+unlock-success: "&aUnlocked account: &e{player}"
+lock-already: "&eAccount &6{player}&e is already locked"
+unlock-already: "&eAccount &6{player}&e is already unlocked"
+lock-kick: "&cYour Minecraft account is locked and cannot join the server"
 
 agent-disabled: "&cAI Agent is disabled. Set agent.enabled to true"
 agent-no-key: "&cAI Agent is missing base-url or api-key"
@@ -89,10 +100,17 @@ command:
     stop: "Stop the current AI task"
     new: "Clear the current AI context"
   bind:
-    description: "Link a Minecraft account"
+    description: "Link a Minecraft account; multiple accounts are supported"
     value: "Player ID when force-bind is off, or 5-digit code when on"
   unbind:
-    description: "Unlink the Minecraft account"
+    description: "Unlink a specific Minecraft account"
+    value: "Player ID (optional when only one account is linked)"
+  lock:
+    description: "Lock a linked account and block it from joining"
+    value: "Player ID (optional when only one account is linked)"
+  unlock:
+    description: "Unlock a linked account"
+    value: "Player ID (optional when only one account is linked)"
   status:
     description: "View server and bot status"
   online:

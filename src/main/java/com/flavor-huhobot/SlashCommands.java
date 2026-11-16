@@ -40,7 +40,12 @@ public final class SlashCommands extends ListenerAdapter {
         ));
         commands.add(Commands.slash("bind", i18n.discord("command.bind.description"))
                 .addOption(OptionType.STRING, "value", i18n.discord("command.bind.value"), true));
-        commands.add(Commands.slash("unbind", i18n.discord("command.unbind.description")));
+        commands.add(Commands.slash("unbind", i18n.discord("command.unbind.description"))
+                .addOption(OptionType.STRING, "value", i18n.discord("command.unbind.value"), false));
+        commands.add(Commands.slash("lock", i18n.discord("command.lock.description"))
+                .addOption(OptionType.STRING, "value", i18n.discord("command.lock.value"), false));
+        commands.add(Commands.slash("unlock", i18n.discord("command.unlock.description"))
+                .addOption(OptionType.STRING, "value", i18n.discord("command.unlock.value"), false));
         commands.add(Commands.slash("status", i18n.discord("command.status.description")));
         commands.add(Commands.slash("online", i18n.discord("command.online.description")));
         commands.add(Commands.slash("motd", i18n.discord("command.motd.description"))
@@ -75,6 +80,8 @@ public final class SlashCommands extends ListenerAdapter {
             case "agent" -> handleAgent(event);
             case "bind" -> handleBind(event);
             case "unbind" -> handleUnbind(event);
+            case "lock" -> handleLock(event, true);
+            case "unlock" -> handleLock(event, false);
             case "status" -> handleStatus(event);
             case "online" -> handleOnline(event);
             case "motd" -> handleMotd(event);
@@ -121,13 +128,6 @@ public final class SlashCommands extends ListenerAdapter {
 
     private void handleBind(SlashCommandInteractionEvent event) {
         String discordId = event.getUser().getId();
-        LinkStore.Link existing = plugin.links().byDiscord(discordId);
-        if (existing != null) {
-            event.reply("你已经绑定了角色 **" + existing.mcName() + "**。如需更换，请先执行 /unbind。")
-                    .setEphemeral(true).queue();
-            return;
-        }
-
         OptionMapping valueOption = event.getOption("value");
         String value = valueOption == null ? "" : valueOption.getAsString().trim();
         String discordName = event.getMember() == null
@@ -136,7 +136,12 @@ public final class SlashCommands extends ListenerAdapter {
 
         if (plugin.config().bindingForceBind()) {
             if (!value.matches("\\d{5}")) {
-                event.reply("请输入游戏内拿到的 5 位验证码。").setEphemeral(true).queue();
+                event.reply(plugin.messages().discord("bind-code-required")).setEphemeral(true).queue();
+                return;
+            }
+            if (plugin.links().countByDiscord(discordId) >= plugin.config().linkMaxAccounts()) {
+                event.reply(plugin.messages().discord("bind-limit",
+                        Map.of("max", String.valueOf(plugin.config().linkMaxAccounts())))).setEphemeral(true).queue();
                 return;
             }
             event.deferReply(true).queue();
@@ -162,8 +167,8 @@ public final class SlashCommands extends ListenerAdapter {
                     String message = switch (link.status()) {
                         case OK -> plugin.messages().discord("bind-success",
                                 Map.of("player", result.pending().playerName()));
-                        case DISCORD_TAKEN -> plugin.messages().discord("link-discord-taken",
-                                Map.of("player", result.pending().playerName()));
+                        case LIMIT_REACHED -> plugin.messages().discord("bind-limit",
+                                Map.of("max", String.valueOf(plugin.config().linkMaxAccounts())));
                         case PLAYER_TAKEN -> plugin.messages().discord("link-player-taken");
                     };
                     event.getHook().sendMessage(message).setEphemeral(true).queue();
@@ -176,7 +181,7 @@ public final class SlashCommands extends ListenerAdapter {
         }
 
         if (!value.matches("[A-Za-z0-9_]{1,16}")) {
-            event.reply("游戏 ID 不合法（1-16 位字母、数字或下划线）。").setEphemeral(true).queue();
+            event.reply(plugin.messages().discord("bind-name-invalid")).setEphemeral(true).queue();
             return;
         }
         String playerName = value;
@@ -187,8 +192,8 @@ public final class SlashCommands extends ListenerAdapter {
                 String message = switch (result.status()) {
                     case OK -> plugin.messages().discord("link-success",
                             Map.of("player", result.link() == null ? playerName : result.link().mcName()));
-                    case DISCORD_TAKEN -> plugin.messages().discord("link-discord-taken",
-                            Map.of("player", result.link() == null ? "?" : result.link().mcName()));
+                    case LIMIT_REACHED -> plugin.messages().discord("bind-limit",
+                            Map.of("max", String.valueOf(plugin.config().linkMaxAccounts())));
                     case PLAYER_TAKEN -> plugin.messages().discord("link-player-taken");
                 };
                 event.getHook().sendMessage(message).setEphemeral(true).queue();
@@ -200,9 +205,60 @@ public final class SlashCommands extends ListenerAdapter {
     }
 
     private void handleUnbind(SlashCommandInteractionEvent event) {
-        boolean removed = plugin.linkService().unlinkByDiscord(event.getUser().getId(), true);
-        event.reply(plugin.messages().discord(removed ? "link-removed" : "link-none"))
-                .setEphemeral(true).queue();
+        LinkStore.Link link = resolveOwnedLink(event);
+        if (link == null) {
+            return;
+        }
+        if (plugin.linkService().unlink(event.getUser().getId(), link, true)) {
+            event.reply(plugin.messages().discord("unbind-success",
+                    Map.of("player", link.mcName()))).setEphemeral(true).queue();
+        } else {
+            event.reply(plugin.messages().discord("bind-not-owned")).setEphemeral(true).queue();
+        }
+    }
+
+    private void handleLock(SlashCommandInteractionEvent event, boolean lock) {
+        LinkStore.Link link = resolveOwnedLink(event);
+        if (link == null) {
+            return;
+        }
+        if (link.locked() == lock) {
+            event.reply(plugin.messages().discord(lock ? "lock-already" : "unlock-already",
+                    Map.of("player", link.mcName()))).setEphemeral(true).queue();
+            return;
+        }
+        if (plugin.links().setLocked(link.discordId(), link.mcUuid(), lock)) {
+            event.reply(plugin.messages().discord(lock ? "lock-success" : "unlock-success",
+                    Map.of("player", link.mcName()))).setEphemeral(true).queue();
+        } else {
+            event.reply(plugin.messages().discord("bind-not-owned")).setEphemeral(true).queue();
+        }
+    }
+
+    /** 解析当前 Discord 用户拥有的账号；没有 ID 时仅在只有一个账号时自动选择。 */
+    private LinkStore.Link resolveOwnedLink(SlashCommandInteractionEvent event) {
+        String discordId = event.getUser().getId();
+        List<LinkStore.Link> links = plugin.links().byDiscordAll(discordId);
+        if (links.isEmpty()) {
+            event.reply(plugin.messages().discord("link-none")).setEphemeral(true).queue();
+            return null;
+        }
+        OptionMapping option = event.getOption("value");
+        String value = option == null ? "" : option.getAsString().trim();
+        if (value.isBlank()) {
+            if (links.size() == 1) {
+                return links.get(0);
+            }
+            event.reply(plugin.messages().discord("bind-select-account")).setEphemeral(true).queue();
+            return null;
+        }
+        for (LinkStore.Link link : links) {
+            if (link.mcName().equalsIgnoreCase(value) || link.mcUuid().equalsIgnoreCase(value)) {
+                return link;
+            }
+        }
+        event.reply(plugin.messages().discord("bind-not-owned")).setEphemeral(true).queue();
+        return null;
     }
 
     // ------------------------------------------------------------------ status
@@ -402,7 +458,9 @@ public final class SlashCommands extends ListenerAdapter {
                         `/agent new` - 清除当前 AI 上下文
                         `/agent stop` - 停止当前任务
                         `/bind <游戏ID或验证码>` - 未开强制绑定填游戏ID；开启后填5位验证码
-                        `/unbind` - 解除绑定
+                        `/unbind [游戏ID]` - 解除指定账号绑定
+                        `/lock [游戏ID]` - 锁定账号，禁止进入服务器
+                        `/unlock [游戏ID]` - 解锁账号
                         `/status` - 服务器与机器人状态
                         `/online` - 在线玩家
                         `/motd [地址]` - 查询 Minecraft 服务器的 MOTD

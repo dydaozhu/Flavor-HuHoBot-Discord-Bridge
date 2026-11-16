@@ -17,7 +17,7 @@ public final class LinkService {
     public enum Status {
         OK,
         PLAYER_TAKEN,
-        DISCORD_TAKEN
+        LIMIT_REACHED
     }
 
     public record Result(Status status, LinkStore.Link link) {
@@ -54,14 +54,23 @@ public final class LinkService {
      * 写入绑定并执行白名单操作。调用方负责保证在主线程执行。
      */
     public Result completeLink(String discordId, String discordName, String mcUuid, String mcName, String source) {
-        LinkStore.Link byDiscord = plugin.links().byDiscord(discordId);
-        if (byDiscord != null) {
-            return new Result(Status.DISCORD_TAKEN, byDiscord);
-        }
         LinkStore.Link byUuid = plugin.links().byUuid(mcUuid);
+        if (byUuid != null) {
+            if (byUuid.discordId().equals(discordId)) {
+                return new Result(Status.OK, byUuid);
+            }
+            return new Result(Status.PLAYER_TAKEN, byUuid);
+        }
         LinkStore.Link byName = plugin.links().byName(mcName);
-        if (byUuid != null || byName != null) {
-            return new Result(Status.PLAYER_TAKEN, byUuid != null ? byUuid : byName);
+        if (byName != null) {
+            if (byName.discordId().equals(discordId)) {
+                return new Result(Status.OK, byName);
+            }
+            return new Result(Status.PLAYER_TAKEN, byName);
+        }
+        int max = plugin.config().linkMaxAccounts();
+        if (plugin.links().countByDiscord(discordId) >= max) {
+            return new Result(Status.LIMIT_REACHED, null);
         }
 
         LinkStore.Link link = new LinkStore.Link(discordId, mcUuid, mcName, System.currentTimeMillis());
@@ -74,12 +83,22 @@ public final class LinkService {
         return new Result(Status.OK, link);
     }
 
+    /** 移除该 Discord 用户的全部绑定。 */
     public boolean unlinkByDiscord(String discordId, boolean removeWhitelist) {
-        LinkStore.Link link = plugin.links().byDiscord(discordId);
-        if (link == null) {
+        boolean removed = false;
+        for (LinkStore.Link link : plugin.links().byDiscordAll(discordId)) {
+            if (unlink(discordId, link, removeWhitelist)) {
+                removed = true;
+            }
+        }
+        return removed;
+    }
+
+    /** 移除指定游戏账号。 */
+    public boolean unlink(String discordId, LinkStore.Link link, boolean removeWhitelist) {
+        if (link == null || !plugin.links().removeLink(discordId, link.mcUuid())) {
             return false;
         }
-        plugin.links().removeByDiscord(discordId);
         if (removeWhitelist && plugin.config().whitelistOnLink()) {
             dispatch(plugin.config().whitelistRemoveCommand().replace("{player}", link.mcName()));
         }
@@ -87,7 +106,7 @@ public final class LinkService {
         return true;
     }
 
-    /** 游戏内玩家解绑：优先按 UUID，找不到时按玩家名（兼容离线 UUID 绑定）。 */
+    /** 游戏内玩家解绑：只移除当前玩家对应的那个账号。 */
     public boolean unlinkByPlayer(Player player, boolean removeWhitelist) {
         LinkStore.Link link = plugin.links().byUuid(player.getUniqueId().toString());
         if (link == null) {
@@ -96,7 +115,7 @@ public final class LinkService {
         if (link == null) {
             return false;
         }
-        return unlinkByDiscord(link.discordId(), removeWhitelist);
+        return unlink(link.discordId(), link, removeWhitelist);
     }
 
     private void dispatch(String command) {

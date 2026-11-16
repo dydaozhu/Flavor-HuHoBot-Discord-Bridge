@@ -14,7 +14,7 @@ import java.util.Map;
 /** 轻量 i18n：从 messages_<language>.yml 读取，缺失 key 回落到内置中文默认值。 */
 public final class Messages {
 
-    private static final int CURRENT_LANGUAGE_VERSION = 1;
+    private static final int CURRENT_LANGUAGE_VERSION = 2;
     private static final Map<String, String> DEFAULTS = defaults();
 
     private final FlavorDiscordBridge plugin;
@@ -176,6 +176,17 @@ public final class Messages {
         map.put("bind-invalid", "&c验证码无效或已使用");
         map.put("bind-expired", "&c验证码已过期，请重新进入服务器获取");
         map.put("bind-rate-limited", "&c尝试过于频繁，请稍后再试");
+        map.put("bind-code-required", "&c请输入游戏内拿到的 5 位验证码");
+        map.put("bind-name-invalid", "&c游戏 ID 不合法（1-16 位字母、数字或下划线）");
+        map.put("bind-limit", "&c一个 Discord 账号最多只能绑定 {max} 个游戏账号");
+        map.put("bind-select-account", "&e你绑定了多个账号，请指定游戏ID");
+        map.put("bind-not-owned", "&c你没有绑定该游戏账号");
+        map.put("unbind-success", "&a已解除绑定：&e{player}");
+        map.put("lock-success", "&a已锁定账号：&e{player}");
+        map.put("unlock-success", "&a已解锁账号：&e{player}");
+        map.put("lock-already", "&e账号 &6{player}&e 已经是锁定状态");
+        map.put("unlock-already", "&e账号 &6{player}&e 已经是解锁状态");
+        map.put("lock-kick", "&c你的游戏账号已被锁定，无法进入服务器");
         map.put("agent-disabled", "&cAI Agent 未启用，请先在 config.yml 中开启 agent.enabled");
         map.put("agent-no-key", "&cAI Agent 未配置 base-url 或 api-key");
         map.put("agent-started", "&aAI 任务已开始");
@@ -236,9 +247,14 @@ public final class Messages {
         map.put("command.agent.task", "任务描述");
         map.put("command.agent.stop", "停止当前 AI 任务");
         map.put("command.agent.new", "清除当前 AI 上下文");
-        map.put("command.bind.description", "绑定 Minecraft 账号");
+        map.put("command.bind.description", "绑定 Minecraft 账号，可绑定多个");
         map.put("command.bind.value", "游戏ID（未开强制绑定）或 5 位验证码（开启强制绑定）");
-        map.put("command.unbind.description", "解除 Minecraft 账号绑定");
+        map.put("command.unbind.description", "解除指定游戏账号绑定");
+        map.put("command.unbind.value", "游戏ID（只有一个账号时可留空）");
+        map.put("command.lock.description", "锁定已绑定账号，禁止其进入服务器");
+        map.put("command.lock.value", "游戏ID（只有一个账号时可留空）");
+        map.put("command.unlock.description", "解锁已绑定账号");
+        map.put("command.unlock.value", "游戏ID（只有一个账号时可留空）");
         map.put("command.status.description", "查看服务器与机器人状态");
         map.put("command.online.description", "查看在线玩家");
         map.put("command.motd.description", "查询 Minecraft 服务器的 MOTD");

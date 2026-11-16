@@ -123,6 +123,7 @@ webui:
 | `bridge.from-discord` | Discord → 游戏格式，占位符 `{name}`、`{message}`、`{discord}`、`{mc}` |
 | `bridge.start-with` | 仅转发指定前缀开头的游戏消息 |
 | `link.whitelist-on-link` | 绑定成功后自动加白名单 |
+| `link.max-accounts` | 每个 Discord 用户最多绑定的游戏账号数，默认 1 |
 | `link.whitelist-list-command` | Discord `/whitelist list` 执行的查询命令，默认 `whitelist list` |
 | `binding.force-bind` | 开启强制绑定 |
 | `binding.force-bind-groups` | 强制绑定踢出提示中展示的 Discord 服务器/频道/邀请链接 |
@@ -143,7 +144,7 @@ webui:
 当前结构版本：
 
 ```yaml
-config-version: 5
+config-version: 6
 ```
 
 - 启动或重载时自动检查 `config-version`
@@ -152,11 +153,12 @@ config-version: 5
 - 手动把 `config-version` 改低后执行 `/reload` 也会触发升级
 - v3 → v4 新增 `link.whitelist-list-command`
 - v4 → v5 仅更新版本号，无新增配置项
+- v5 → v6 新增 `link.max-accounts`，默认 1
 
 语言文件也有独立的版本号：
 
 ```yaml
-language-version: 1
+language-version: 2
 ```
 
 插件会保留已有翻译，并自动补齐新版本新增的语言键。
@@ -219,6 +221,28 @@ binding:
 /flavorhuhobot unbind
 ```
 
+### 多账号与锁定
+
+```yaml
+link:
+  max-accounts: 3
+```
+
+一个 Discord 账号最多可以绑定 `max-accounts` 个 Minecraft 账号，默认 1。
+
+```text
+/bind value:<游戏ID>
+/unbind <游戏ID>
+/lock <游戏ID>
+/unlock <游戏ID>
+```
+
+只绑定一个账号时，`/unbind`、`/lock`、`/unlock` 可以省略游戏 ID。
+
+被锁定的账号无法进入服务器；解锁后恢复。锁定状态保存在 `binds.json`。
+
+Discord 用户退出 Discord 服务器时，会自动解除该用户的所有绑定；如果 `link.whitelist-on-link` 开启，也会同时移除对应白名单。
+
 ---
 
 ## 命令
@@ -230,8 +254,10 @@ binding:
 | `/agent run task:<任务>` | 执行 AI 任务 | 管理员 |
 | `/agent new` | 清除当前 AI 上下文 | 管理员 |
 | `/agent stop` | 停止自己的任务 | 管理员 |
-| `/bind value:<游戏ID或验证码>` | 绑定 Minecraft 账号 | 所有人 |
-| `/unbind` | 解除绑定 | 所有人 |
+| `/bind value:<游戏ID或验证码>` | 绑定 Minecraft 账号，可绑定多个 | 所有人 |
+| `/unbind [游戏ID]` | 解除指定账号绑定，只有一个账号时可省略 | 所有人 |
+| `/lock [游戏ID]` | 锁定账号，禁止其进入服务器 | 所有人 |
+| `/unlock [游戏ID]` | 解锁账号 | 所有人 |
 | `/status` | 服务器与机器人状态 | 所有人 |
 | `/online` | 在线玩家 | 所有人 |
 | `/motd [address]` | 查询 Minecraft 服务器 MOTD，留空使用默认地址 | 所有人 |
@@ -484,4 +510,4 @@ pom.xml                             Maven 构建
 
 ---
 
-**当前版本：1.0.1**
+**当前版本：1.0.2**
