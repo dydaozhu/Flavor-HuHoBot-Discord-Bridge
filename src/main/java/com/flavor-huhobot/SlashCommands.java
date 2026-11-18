@@ -231,10 +231,29 @@ public final class SlashCommands extends ListenerAdapter {
             return;
         }
         if (plugin.links().setLocked(link.discordId(), link.mcUuid(), lock)) {
+            if (lock) {
+                Bukkit.getScheduler().runTask(plugin, () -> kickLockedPlayer(link));
+            }
             event.reply(plugin.messages().discord(lock ? "lock-success" : "unlock-success",
                     Map.of("player", link.mcName()))).setEphemeral(true).queue();
         } else {
             event.reply(plugin.messages().discord("bind-not-owned")).setEphemeral(true).queue();
+        }
+    }
+
+    /** 锁定在线玩家时立即踢出；下次登录会由 PlayerLoginEvent 拦截。 */
+    private void kickLockedPlayer(LinkStore.Link link) {
+        Player online = Bukkit.getPlayerExact(link.mcName());
+        if (online == null) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (player.getUniqueId().toString().equals(link.mcUuid())) {
+                    online = player;
+                    break;
+                }
+            }
+        }
+        if (online != null) {
+            online.kick(Text.component(plugin.messages().getPrefixed("lock-kick")));
         }
     }
 
