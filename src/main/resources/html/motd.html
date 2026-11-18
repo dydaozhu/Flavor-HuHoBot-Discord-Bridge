@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>MOTD</title>
+  <style>
+    body { margin: 0; padding: 0; background: #313338; color: #f2f3f5; font-family: "Noto Sans SC", sans-serif; }
+    .page { width: 856px; height: 320px; padding: 18px 22px; }
+    .card { background: #2b2d31; border: 1px solid #3f4147; padding: 20px; }
+    table { border-collapse: collapse; }
+    td { vertical-align: top; }
+    .icon { width: 96px; height: 96px; }
+    .icon-cell { width: 116px; }
+    .address { font-size: 26px; font-weight: bold; line-height: 1.1; }
+    .label { color: #b5bac1; font-size: 14px; }
+    .motd { font-size: 18px; line-height: 1.4; margin-top: 0; color: #dbdee1; }
+    .stats { margin-top: 18px; font-size: 14px; color: #b5bac1; }
+    .stats td { padding-right: 26px; }
+    .value { color: #f2f3f5; font-weight: bold; }
+    .online { color: #57f287; }
+    .offline { color: #ed4245; }
+    .footer { margin-top: 14px; color: #949ba4; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <table>
+        <tr>
+          <td class="icon-cell"><img class="icon" src="{{ICON}}" width="96" height="96" alt=""/></td>
+          <td>
+            <div class="address">{{ADDRESS}}</div>
+            <div class="motd">{{MOTD}}</div>
+            <div class="stats">
+              <table>
+                <tr>
+                  <td><span class="label">{{VERSION_LABEL}}</span> <span class="value">{{VERSION}}</span></td>
+                  <td><span class="label">{{PLAYERS_LABEL}}</span> <span class="value">{{PLAYERS}}</span></td>
+                  <td><span class="label">{{DELAY_LABEL}}</span> <span class="value">{{DELAY}}</span></td>
+                </tr>
+              </table>
+            </div>
+            <div class="footer">{{STATUS}}</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

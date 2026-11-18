@@ -162,7 +162,7 @@ Aliases: `/fh`, `/discord`
 Current config version:
 
 ```yaml
-config-version: 6
+config-version: 7
 ```
 
 The plugin upgrades old configs automatically and preserves existing values. No `.bak` files are created.
@@ -172,7 +172,7 @@ The legacy `links.json` file is migrated to `binds.json` automatically.
 Language files also have a version:
 
 ```yaml
-language-version: 2
+language-version: 3
 ```
 
 Existing translations are preserved and missing keys are added automatically.
@@ -350,7 +350,7 @@ http://127.0.0.1:8080
 当前配置版本：
 
 ```yaml
-config-version: 6
+config-version: 7
 ```
 
 插件会自动升级旧配置并保留已填写的值，不生成 `.bak` 备份。
@@ -360,7 +360,7 @@ config-version: 6
 语言文件也有版本号：
 
 ```yaml
-language-version: 2
+language-version: 3
 ```
 
 插件会保留已有翻译，并自动补齐缺失的语言键。
@@ -387,4 +387,4 @@ language-version: 2
 
 ---
 
-**Current version / 当前版本：1.0.2**
+**Current version / 当前版本：1.0.3**

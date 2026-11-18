@@ -24,6 +24,10 @@ public final class FlavorDiscordBridge extends JavaPlugin {
     private AgentService agentService;
     private WebServer webServer;
     private MotdClient motdClient;
+    private HtmlImageRenderer imageRenderer;
+    private AvatarService avatarService;
+    private DiscordImageService imageService;
+    private OnlineHistory onlineHistory;
 
     @Override
     public void onEnable() {
@@ -51,6 +55,11 @@ public final class FlavorDiscordBridge extends JavaPlugin {
         agentService = new AgentService(this);
         webServer = new WebServer(this);
         motdClient = new MotdClient();
+        imageRenderer = new HtmlImageRenderer(this);
+        avatarService = new AvatarService(this);
+        imageService = new DiscordImageService(this);
+        onlineHistory = new OnlineHistory(new File(getDataFolder(), "online-history.json"));
+        onlineHistory.load();
 
         if (getCommand("flavorhuhobot") != null) {
             DiscordCommand executor = new DiscordCommand(this);
@@ -66,6 +75,9 @@ public final class FlavorDiscordBridge extends JavaPlugin {
 
         getServer().getScheduler().runTaskTimerAsynchronously(this,
                 () -> forceBindService.cleanup(), 1200L, 1200L);
+        getServer().getScheduler().runTaskTimer(this,
+                () -> onlineHistory.record(getServer().getOnlinePlayers().size()),
+                0L, 20L * 300L);
 
         if (configManager.bindingForceBind() && getServer().hasWhitelist()) {
             getLogger().warning("binding.force-bind 已开启，但服务器 whitelist 仍为开启状态；");
@@ -100,6 +112,9 @@ public final class FlavorDiscordBridge extends JavaPlugin {
         }
         if (usage != null) {
             usage.save();
+        }
+        if (onlineHistory != null) {
+            onlineHistory.save();
         }
     }
 
@@ -193,5 +208,21 @@ public final class FlavorDiscordBridge extends JavaPlugin {
 
     public MotdClient motdClient() {
         return motdClient;
+    }
+
+    public HtmlImageRenderer imageRenderer() {
+        return imageRenderer;
+    }
+
+    public AvatarService avatarService() {
+        return avatarService;
+    }
+
+    public DiscordImageService imageService() {
+        return imageService;
+    }
+
+    public OnlineHistory onlineHistory() {
+        return onlineHistory;
     }
 }

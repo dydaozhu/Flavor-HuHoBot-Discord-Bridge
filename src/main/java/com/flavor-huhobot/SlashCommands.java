@@ -11,9 +11,12 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -263,6 +266,72 @@ public final class SlashCommands extends ListenerAdapter {
 
     // ------------------------------------------------------------------ status
 
+    private void sendImage(SlashCommandInteractionEvent event, byte[] image, String filename) {
+        if (image == null || image.length == 0) {
+            sendErrorImage(event, new IOException("图片为空"));
+            return;
+        }
+        event.getHook().sendMessage(" ")
+                .addFiles(FileUpload.fromData(image, filename))
+                .setEphemeral(true)
+                .queue();
+    }
+
+    private void sendImages(SlashCommandInteractionEvent event, List<byte[]> images, String prefix) {
+        if (images == null || images.isEmpty()) {
+            sendErrorImage(event, new IOException("没有可发送的图片"));
+            return;
+        }
+        for (int i = 0; i < images.size(); i++) {
+            event.getHook().sendMessage(" ")
+                    .addFiles(FileUpload.fromData(images.get(i), prefix + "-" + (i + 1) + ".png"))
+                    .setEphemeral(true)
+                    .queue();
+        }
+    }
+
+    private void sendErrorImage(SlashCommandInteractionEvent event, Throwable error) {
+        try {
+            byte[] image = plugin.imageService().error(error == null ? "" : error.getMessage());
+            event.getHook().sendMessage(" ")
+                    .addFiles(FileUpload.fromData(image, "error.png"))
+                    .setEphemeral(true)
+                    .queue();
+        } catch (Throwable renderError) {
+            event.getHook().sendMessage(plugin.messages().discord("image-error-message"))
+                    .setEphemeral(true)
+                    .queue();
+        }
+    }
+
+    private static List<String> parseWhitelistNames(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+        String text = Text.stripColorCodes(raw);
+        int colon = Math.max(text.lastIndexOf(':'), text.lastIndexOf('：'));
+        if (colon >= 0 && colon + 1 < text.length()) {
+            text = text.substring(colon + 1);
+        }
+        List<String> names = new ArrayList<>();
+        java.util.Set<String> ignored = java.util.Set.of(
+                "whitelist", "whitelisted", "players", "player", "there", "are", "is",
+                "list", "has", "been", "added", "total", "online", "true", "false"
+        );
+        for (String token : text.split("[^A-Za-z0-9_]+")) {
+            if (token.isBlank() || token.length() > 16
+                    || token.matches("\\d+")
+                    || ignored.contains(token.toLowerCase(java.util.Locale.ROOT))) {
+                continue;
+            }
+            if (!names.contains(token)) {
+                names.add(token);
+            }
+        }
+        names.sort(String.CASE_INSENSITIVE_ORDER);
+        return names;
+    }
+
     private void handleStatus(SlashCommandInteractionEvent event) {
         Guild guild = event.getGuild();
         if (guild == null) {
@@ -285,15 +354,47 @@ public final class SlashCommands extends ListenerAdapter {
     }
 
     private void handleOnline(SlashCommandInteractionEvent event) {
-        List<String> names = Bukkit.getOnlinePlayers().stream()
-                .map(player -> player.getName())
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .toList();
-        String value = names.isEmpty() ? "当前没有玩家在线。" : String.join(", ", names);
-        MessageEmbed embed = DiscordUtil.base("在线玩家 (" + names.size() + ")")
-                .setDescription(value.length() > 3900 ? value.substring(0, 3900) + "…" : value)
-                .build();
-        event.replyEmbeds(embed).queue();
+        event.deferReply(true).queue();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            List<Player> online = new ArrayList<>(Bukkit.getOnlinePlayers());
+            List<AvatarService.Request> avatars = online.stream()
+                    .map(plugin.avatarService()::request)
+                    .toList();
+            List<OnlineHistory.Sample> history = plugin.onlineHistory().snapshot();
+            String serverName = plugin.config().serverName();
+            int maxPlayers = Bukkit.getMaxPlayers();
+            String serverIcon = "";
+            try {
+                var icon = Bukkit.getServer().getServerIcon();
+                if (icon != null && !icon.isEmpty()) {
+                    serverIcon = icon.getData();
+                }
+            } catch (Exception ignored) {
+            }
+            String configuredHost = plugin.config().serverHost();
+            String capturedIcon = serverIcon;
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                String icon = capturedIcon;
+                if (icon == null || icon.isBlank()) {
+                    try {
+                        MotdClient.Result status = plugin.motdClient().query(configuredHost);
+                        if (status.icon() != null && !status.icon().isBlank()) {
+                            icon = status.icon();
+                        }
+                    } catch (Exception ignored) {
+                        // 没有 server-icon.png 且 MOTD 不可用时回退到内置图标
+                    }
+                }
+                try {
+                    byte[] image = plugin.imageService().online(serverName, online.size(), maxPlayers,
+                            icon, avatars, history);
+                    sendImage(event, image, "online.png");
+                } catch (Throwable error) {
+                    plugin.getLogger().warning("生成在线玩家图片失败: " + error.getMessage());
+                    sendErrorImage(event, error);
+                }
+            });
+        });
     }
 
     // ------------------------------------------------------------------ motd
@@ -314,42 +415,11 @@ public final class SlashCommands extends ListenerAdapter {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 MotdClient.Result result = plugin.motdClient().query(target);
-                EmbedBuilder embed = new EmbedBuilder()
-                        .setTitle(plugin.messages().discord("motd-title"))
-                        .setColor(result.online() ? 0x57F287 : 0xED4245)
-                        .addField(plugin.messages().discord("motd-address"),
-                                Text.truncate(result.address(), 200), true)
-                        .addField(plugin.messages().discord("motd-status"),
-                                plugin.messages().discord(result.online() ? "motd-online" : "motd-offline"), true);
-
-                if (result.online()) {
-                    embed.addField(plugin.messages().discord("motd-players"),
-                            result.onlinePlayers() + " / " + result.maxPlayers(), true);
-                    if (!result.version().isBlank()) {
-                        embed.addField(plugin.messages().discord("motd-version"),
-                                Text.truncate(result.version(), 200), true);
-                    }
-                    if (result.delay() > 0) {
-                        embed.addField(plugin.messages().discord("motd-delay"),
-                                result.delay() + " ms", true);
-                    }
-                }
-
-                String body = result.motd() == null || result.motd().isBlank()
-                        ? plugin.messages().discord("motd-empty")
-                        : Text.stripColorCodes(result.motd());
-                embed.setDescription("```\n" + Text.truncate(body, 1500) + "\n```");
-                if (!result.online() && !result.error().isBlank()) {
-                    embed.setFooter(Text.truncate(Text.stripColorCodes(result.error()), 200));
-                }
-                event.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
+                byte[] image = plugin.imageService().motd(result, target);
+                sendImage(event, image, "motd.png");
             } catch (Throwable error) {
-                EmbedBuilder embed = new EmbedBuilder()
-                        .setTitle(plugin.messages().discord("motd-title"))
-                        .setColor(0xED4245)
-                        .setDescription(plugin.messages().discord("motd-error",
-                                Map.of("error", error.getMessage() == null ? "unknown" : error.getMessage())));
-                event.getHook().sendMessageEmbeds(embed.build()).setEphemeral(true).queue();
+                plugin.getLogger().warning("生成 MOTD 图片失败: " + error.getMessage());
+                sendErrorImage(event, error);
             }
         });
     }
@@ -368,30 +438,35 @@ public final class SlashCommands extends ListenerAdapter {
         if ("list".equals(sub)) {
             event.deferReply(true).queue();
             Bukkit.getScheduler().runTask(plugin, () -> {
-                String value;
+                String value = "";
                 String listCommand = plugin.config().whitelistListCommand();
                 if (listCommand != null && !listCommand.isBlank()) {
                     try {
                         value = Text.stripColorCodes(CommandOutput.run(listCommand));
                     } catch (Throwable error) {
                         plugin.getLogger().warning("执行白名单查询命令失败: " + error.getMessage());
-                        value = "";
                     }
-                } else {
-                    value = "";
                 }
-                if (value.isBlank()) {
-                    List<String> names = Bukkit.getWhitelistedPlayers().stream()
+                List<String> names = parseWhitelistNames(value);
+                if (names.isEmpty() && value.isBlank()) {
+                    names = Bukkit.getWhitelistedPlayers().stream()
                             .map(OfflinePlayer::getName)
                             .filter(Objects::nonNull)
                             .sorted(String.CASE_INSENSITIVE_ORDER)
                             .toList();
-                    value = names.isEmpty()
-                            ? plugin.messages().discord("whitelist-empty")
-                            : String.join(", ", names);
                 }
-                event.getHook().sendMessage(value.length() > 1900 ? value.substring(0, 1900) + "…" : value)
-                        .setEphemeral(true).queue();
+                List<AvatarService.Request> players = names.stream()
+                        .map(name -> plugin.avatarService().request(Bukkit.getOfflinePlayer(name)))
+                        .toList();
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    try {
+                        List<byte[]> images = plugin.imageService().whitelist(players);
+                        sendImages(event, images, "whitelist");
+                    } catch (Throwable error) {
+                        plugin.getLogger().warning("生成白名单图片失败: " + error.getMessage());
+                        sendErrorImage(event, error);
+                    }
+                });
             });
             return;
         }

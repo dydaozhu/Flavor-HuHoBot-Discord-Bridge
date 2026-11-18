@@ -14,7 +14,7 @@ import java.util.Map;
 /** 轻量 i18n：从 messages_<language>.yml 读取，缺失 key 回落到内置中文默认值。 */
 public final class Messages {
 
-    private static final int CURRENT_LANGUAGE_VERSION = 2;
+    private static final int CURRENT_LANGUAGE_VERSION = 3;
     private static final Map<String, String> DEFAULTS = defaults();
 
     private final FlavorDiscordBridge plugin;
@@ -119,6 +119,11 @@ public final class Messages {
 
     public String get(String key, Map<String, String> placeholders) {
         String template = raw(key).replace("{prefix}", prefix());
+        if (plugin != null && plugin.config() != null) {
+            template = template
+                    .replace("{server_name}", plugin.config().serverName())
+                    .replace("{server_host}", plugin.config().serverHost());
+        }
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             template = template.replace("{" + entry.getKey() + "}", entry.getValue() == null ? "" : entry.getValue());
         }
@@ -158,7 +163,7 @@ public final class Messages {
     private static Map<String, String> defaults() {
         Map<String, String> map = new HashMap<>();
         map.put("prefix", "&8[&bFlavor&3Discord&8] &r");
-        map.put("language-version", "1");
+        map.put("language-version", "3");
         map.put("no-permission", "&c你没有权限执行此操作");
         map.put("player-only", "&c此命令只能由游戏内玩家执行");
         map.put("unknown-command", "&c未知子命令，使用 &e/flavorhuhobot help &c查看帮助");
@@ -221,6 +226,21 @@ public final class Messages {
         map.put("motd-empty", "无 MOTD");
         map.put("motd-no-address", "未配置默认服务器地址");
         map.put("motd-error", "查询失败：{error}");
+        map.put("image-motd-version-label", "版本");
+        map.put("image-motd-players-label", "在线人数");
+        map.put("image-motd-delay-label", "延迟");
+        map.put("image-motd-online", "在线");
+        map.put("image-motd-offline", "离线");
+        map.put("image-online-label", "在线人数");
+        map.put("image-online-empty", "当前没有玩家在线");
+        map.put("image-online-footer", "在线玩家列表");
+        map.put("image-online-more", "还有 {count} 名玩家");
+        map.put("image-whitelist-title", "白名单");
+        map.put("image-whitelist-count", "共 {count} 人");
+        map.put("image-whitelist-page", "第 {page} / {total} 页");
+        map.put("image-whitelist-empty", "白名单为空");
+        map.put("image-error-title", "图片生成失败");
+        map.put("image-error-message", "请查看控制台日志");
         map.put("status-title", "服务器状态");
         map.put("status-server", "服务器");
         map.put("status-discord", "Discord");

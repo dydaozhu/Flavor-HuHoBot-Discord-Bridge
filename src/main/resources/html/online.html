@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>Online</title>
+  <style>
+    body { margin: 0; padding: 0; background: #313338; color: #f2f3f5; font-family: "Noto Sans SC", sans-serif; }
+    .page { width: 856px; padding: 18px 22px; }
+    .card { background: #2b2d31; border: 1px solid #3f4147; padding: 18px; }
+    table { border-collapse: collapse; }
+    td { vertical-align: middle; }
+    .icon { width: 64px; height: 64px; }
+    .icon-cell { width: 80px; }
+    .server { font-size: 26px; font-weight: bold; }
+    .sub { color: #b5bac1; font-size: 14px; margin-top: 4px; }
+    .count { color: #57f287; font-size: 22px; font-weight: bold; }
+    .chart { margin-top: 14px; }
+    .chart img { width: 100%; }
+    .empty { color: #b5bac1; font-size: 14px; margin-top: 12px; }
+    .players { width: 100%; margin-top: 10px; border-collapse: collapse; }
+    .player { background: #232428; border: 1px solid #3f4147; padding: 8px; width: 25%; }
+    .head { width: 32px; height: 32px; }
+    .name { font-size: 13px; color: #f2f3f5; padding-left: 8px; }
+    .footer { margin-top: 12px; color: #949ba4; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <table>
+        <tr>
+          <td class="icon-cell"><img class="icon" src="{{ICON}}" width="64" height="64" alt=""/></td>
+          <td>
+            <div class="server">{{SERVER_NAME}} <span class="count">{{COUNT}}/{{MAX}}</span></div>
+            <div class="sub">{{ONLINE_LABEL}}</div>
+          </td>
+        </tr>
+      </table>
+      {{CHART}}
+      {{PLAYERS}}
+      {{EMPTY}}
+      <div class="footer">{{FOOTER}}</div>
+    </div>
+  </div>
+</body>
+</html>

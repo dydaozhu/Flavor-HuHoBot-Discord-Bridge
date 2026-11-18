@@ -1,0 +1,13 @@
+Noto Sans SC
+------------
+
+This plugin bundles Noto Sans SC for Chinese/HTML image rendering.
+
+Noto Sans SC is licensed under the SIL Open Font License, Version 1.1.
+Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'.
+Copyright 2012 Google Inc. All Rights Reserved.
+
+The full license text is available at:
+https://openfontlicense.org/open-font-license-official-text/
+
+The font file is distributed together with the plugin and is not sold separately.

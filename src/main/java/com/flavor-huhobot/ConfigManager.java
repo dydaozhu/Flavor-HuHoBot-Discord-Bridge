@@ -29,6 +29,16 @@ public final class ConfigManager {
         return config.getString("language", "zh_CN");
     }
 
+    // ------------------------------------------------------------------ Server
+
+    public String serverName() {
+        return config.getString("server.name", "Flavor-HuHoBot-Discord-Bridge");
+    }
+
+    public String serverHost() {
+        return config.getString("server.host", "huhobot.mcfwq.top");
+    }
+
     // ------------------------------------------------------------------ Discord
 
     public String token() {

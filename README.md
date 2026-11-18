@@ -115,6 +115,8 @@ webui:
 
 | 配置 | 说明 |
 |---|---|
+| `server.name` | 服务器显示名称，占位符 `{server_name}` |
+| `server.host` | 服务器地址，占位符 `{server_host}` |
 | `discord.channels.game-to-discord` | 游戏 → Discord 的频道；留空关闭该方向 |
 | `discord.channels.discord-to-game` | Discord → 游戏的频道；留空关闭该方向 |
 | `discord.channels.agent` | AI 任务与回复频道；留空使用执行命令的当前频道 |
@@ -144,7 +146,7 @@ webui:
 当前结构版本：
 
 ```yaml
-config-version: 6
+config-version: 7
 ```
 
 - 启动或重载时自动检查 `config-version`
@@ -154,11 +156,12 @@ config-version: 6
 - v3 → v4 新增 `link.whitelist-list-command`
 - v4 → v5 仅更新版本号，无新增配置项
 - v5 → v6 新增 `link.max-accounts`，默认 1
+- v6 → v7 新增 `server.name`、`server.host`
 
 语言文件也有独立的版本号：
 
 ```yaml
-language-version: 2
+language-version: 3
 ```
 
 插件会保留已有翻译，并自动补齐新版本新增的语言键。
@@ -259,8 +262,9 @@ Discord 用户退出 Discord 服务器时，会自动解除该用户的所有绑
 | `/lock [游戏ID]` | 锁定账号，禁止其进入服务器 | 所有人 |
 | `/unlock [游戏ID]` | 解锁账号 | 所有人 |
 | `/status` | 服务器与机器人状态 | 所有人 |
-| `/online` | 在线玩家 | 所有人 |
-| `/motd [address]` | 查询 Minecraft 服务器 MOTD，留空使用默认地址 | 所有人 |
+| `/online` | 在线玩家图片，包含人数折线图 | 所有人 |
+| `/motd [address]` | 查询 Minecraft 服务器 MOTD 图片，留空使用默认地址 | 所有人 |
+| `/whitelist list` | 白名单图片，每张最多 20 人 | 管理员 |
 | `/whitelist add\|remove\|list` | 白名单管理 | 管理员 |
 | `/console command:<命令>` | 执行控制台命令 | 管理员 |
 | `/help` | 帮助 | 所有人 |
@@ -510,4 +514,4 @@ pom.xml                             Maven 构建
 
 ---
 
-**当前版本：1.0.2**
+**当前版本：1.0.3**

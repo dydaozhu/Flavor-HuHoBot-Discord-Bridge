@@ -62,7 +62,7 @@ public final class MotdClient {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                 .timeout(Duration.ofSeconds(15))
                 .header("Accept", "application/json")
-                .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.2")
+                .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.3")
                 .GET()
                 .build();
         HttpResponse<String> response = http.send(request,
@@ -73,9 +73,9 @@ public final class MotdClient {
 
         JsonNode root = Json.read(response.body());
         boolean online = "online".equalsIgnoreCase(root.path("status").asText());
-        String motd = root.path("pureMotd").asText("");
+        String motd = root.path("motd").asText("");
         if (motd.isBlank()) {
-            motd = Text.stripColorCodes(root.path("motd").asText(""));
+            motd = root.path("pureMotd").asText("");
         }
         String version = root.path("version").asText("");
         int onlinePlayers = root.path("players").path("online").asInt(0);
@@ -83,7 +83,12 @@ public final class MotdClient {
         long delay = root.path("delay").asLong(0);
         String error = root.path("error").asText("");
         String queried = root.path("resolved").asText(root.path("host").asText(address));
-        return new Result(queried, online, motd, version, onlinePlayers, maxPlayers, delay, error);
+        String icon = root.path("icon").asText("");
+        String motdComponent = root.path("motd").isContainerNode()
+                ? root.path("motd").toString()
+                : "";
+        return new Result(queried, online, motd, version, onlinePlayers, maxPlayers,
+                delay, error, icon, motdComponent);
     }
 
     public record Result(
@@ -94,7 +99,9 @@ public final class MotdClient {
             int onlinePlayers,
             int maxPlayers,
             long delay,
-            String error
+            String error,
+            String icon,
+            String motdComponent
     ) {
     }
 }

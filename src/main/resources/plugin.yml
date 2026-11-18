@@ -1,9 +1,9 @@
 name: Flavor-HuHoBot-Discord-Bridge
-version: 1.0.2
+version: 1.0.3
 main: com.flavor.huhobot.FlavorDiscordBridge
 api-version: '1.21'
 author: dydaozhu
-website: https://modrinth.com/plugin/flavor-huhoBot-discord-bridge
+website: https://huhobot.mcfwq.top
 description: 基于HuHoBot的Discord桥接插件(风味HuHoBot)
 
 commands:

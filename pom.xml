@@ -6,7 +6,7 @@
 
     <groupId>com.flavor</groupId>
     <artifactId>flavor-huhobot-discord-bridge</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>Flavor-HuHoBot-Discord-Bridge</name>
@@ -58,6 +58,12 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.xhtmlrenderer</groupId>
+            <artifactId>flying-saucer-core</artifactId>
+            <version>9.1.22</version>
         </dependency>
 
         <dependency>

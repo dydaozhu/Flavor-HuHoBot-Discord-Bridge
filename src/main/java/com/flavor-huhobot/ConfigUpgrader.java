@@ -23,7 +23,7 @@ import java.util.List;
 final class ConfigUpgrader {
 
     /** 当前配置文件结构版本，与 config.yml 的 config-version 对应。 */
-    private static final int CURRENT_CONFIG_VERSION = 6;
+    private static final int CURRENT_CONFIG_VERSION = 7;
 
     private ConfigUpgrader() {
     }
@@ -34,6 +34,7 @@ final class ConfigUpgrader {
             return;
         }
         cleanupBackups(plugin);
+        ensureServerSection(plugin, file);
         ensureMotdSection(plugin, file);
 
         // 重新读取磁盘文件，确保手动修改的 config-version 能立即生效
@@ -87,6 +88,9 @@ final class ConfigUpgrader {
         if (from < 6) {
             migrateToV6(config);
         }
+        if (from < 7) {
+            migrateToV7(config);
+        }
 
         config.set("config-version", CURRENT_CONFIG_VERSION);
         plugin.saveConfig();
@@ -104,6 +108,58 @@ final class ConfigUpgrader {
             if (backup.delete()) {
                 plugin.getLogger().info("已删除旧配置备份: " + backup.getName());
             }
+        }
+    }
+
+    /**
+     * 在 Discord 机器人配置块之前插入服务器信息段。
+     * 老配置没有 server 段时只插入一次，不覆盖已有值。
+     */
+    private static void ensureServerSection(FlavorDiscordBridge plugin, File file) {
+        try {
+            String text = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            List<String> lines = new ArrayList<>(Arrays.asList(text.split("\n", -1)));
+            if (findTopLevel(lines, "server:") >= 0) {
+                // 修复旧版本在 server 段前多插入的一条分隔线。
+                for (int i = 2; i < lines.size(); i++) {
+                    if (lines.get(i).contains("# 服务器信息")
+                            && lines.get(i - 1).startsWith("# ---")
+                            && lines.get(i - 2).startsWith("# ---")) {
+                        lines.remove(i - 2);
+                        Files.writeString(file.toPath(), String.join("\n", lines), StandardCharsets.UTF_8);
+                        break;
+                    }
+                }
+                return;
+            }
+            List<String> block = new ArrayList<>(List.of(
+                    "# ------------------------------------------------------------",
+                    "# 服务器信息",
+                    "# ------------------------------------------------------------",
+                    "server:",
+                    "  name: \"Flavor-HuHoBot-Discord-Bridge\"",
+                    "  host: \"huhobot.mcfwq.top\"",
+                    ""
+            ));
+
+            int insert = -1;
+            for (int i = 0; i < lines.size(); i++) {
+                if (lines.get(i).contains("# Discord 机器人")) {
+                    insert = i;
+                    if (insert >= 1 && lines.get(insert - 1).startsWith("# ---")) {
+                        insert--;
+                    }
+                    break;
+                }
+            }
+            if (insert < 0) {
+                insert = 0;
+            }
+            lines.addAll(insert, block);
+            Files.writeString(file.toPath(), String.join("\n", lines), StandardCharsets.UTF_8);
+            plugin.getLogger().info("已插入服务器信息配置段");
+        } catch (Exception error) {
+            plugin.getLogger().warning("迁移服务器信息配置失败: " + error.getMessage());
         }
     }
 
@@ -239,6 +295,16 @@ final class ConfigUpgrader {
     private static void migrateToV6(FileConfiguration config) {
         if (!config.contains("link.max-accounts")) {
             config.set("link.max-accounts", 1);
+        }
+    }
+
+    /** v6 -> v7：新增服务器名称与地址。 */
+    private static void migrateToV7(FileConfiguration config) {
+        if (!config.contains("server.name")) {
+            config.set("server.name", "Flavor-HuHoBot-Discord-Bridge");
+        }
+        if (!config.contains("server.host")) {
+            config.set("server.host", "huhobot.mcfwq.top");
         }
     }
 }
