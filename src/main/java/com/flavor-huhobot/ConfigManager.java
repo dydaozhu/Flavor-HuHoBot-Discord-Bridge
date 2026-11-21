@@ -46,23 +46,23 @@ public final class ConfigManager {
     }
 
     public String guildId() {
-        return value("discord.guild-id");
+        return first("discord.server-id", "discord.guild-id");
     }
 
     public String gameToDiscordChannelId() {
-        return value("discord.channels.game-to-discord");
+        return first("bridge.channels.game-to-discord", "discord.channels.game-to-discord");
     }
 
     public String discordToGameChannelId() {
-        return value("discord.channels.discord-to-game");
+        return first("bridge.channels.discord-to-game", "discord.channels.discord-to-game");
     }
 
     public String agentChannelId() {
-        return value("discord.channels.agent");
+        return first("agent.agent", "discord.channels.agent");
     }
 
     public String auditChannelId() {
-        return value("discord.channels.audit");
+        return first("bridge.channels.audit", "discord.channels.audit");
     }
 
     public List<String> adminRoleIds() {
@@ -84,11 +84,25 @@ public final class ConfigManager {
     }
 
     public String fromGame() {
-        return config.getString("bridge.from-game", "[MC] {name}: {message}");
+        return first("bridge.message.game-message", "bridge.from-game");
+    }
+
+    public boolean gameMessageEnabled() {
+        if (config.contains("bridge.message.game-enabled")) {
+            return config.getBoolean("bridge.message.game-enabled", true) && !fromGame().isBlank();
+        }
+        return !fromGame().isBlank();
     }
 
     public String fromDiscord() {
-        return config.getString("bridge.from-discord", "[DC] {name}: {message}");
+        return first("bridge.message.discord-message", "bridge.from-discord");
+    }
+
+    public boolean discordMessageEnabled() {
+        if (config.contains("bridge.message.discord-enabled")) {
+            return config.getBoolean("bridge.message.discord-enabled", true) && !fromDiscord().isBlank();
+        }
+        return !fromDiscord().isBlank();
     }
 
     public boolean ignoreBots() {
@@ -96,7 +110,11 @@ public final class ConfigManager {
     }
 
     public String startWith() {
-        return config.getString("bridge.start-with", "");
+        return first("bridge.game-start-with", "bridge.start-with");
+    }
+
+    public String discordStartWith() {
+        return value("bridge.discord-start-with");
     }
 
     public boolean linkRequiredForChat() {
@@ -104,41 +122,57 @@ public final class ConfigManager {
     }
 
     public boolean joinEnabled() {
-        return config.getBoolean("bridge.events.join", true);
+        if (config.contains("bridge.message.join-enabled")) {
+            return config.getBoolean("bridge.message.join-enabled", true) && !joinFormat().isBlank();
+        }
+        if (config.contains("bridge.events.join")) {
+            return config.getBoolean("bridge.events.join", true);
+        }
+        return !joinFormat().isBlank();
     }
 
     public boolean quitEnabled() {
-        return config.getBoolean("bridge.events.quit", true);
+        if (config.contains("bridge.message.quit-enabled")) {
+            return config.getBoolean("bridge.message.quit-enabled", true) && !quitFormat().isBlank();
+        }
+        if (config.contains("bridge.events.quit")) {
+            return config.getBoolean("bridge.events.quit", true);
+        }
+        return !quitFormat().isBlank();
     }
 
     public String joinFormat() {
-        return config.getString("bridge.events.join-format", "[MC] {name} 加入了服务器");
+        return first("bridge.message.join-message", "bridge.events.join-format");
     }
 
     public String quitFormat() {
-        return config.getString("bridge.events.quit-format", "[MC] {name} 离开了服务器");
+        return first("bridge.message.quit-message", "bridge.events.quit-format");
     }
 
-    // ------------------------------------------------------------------ Link
+    // ------------------------------------------------------------------ Bind
 
     public boolean whitelistOnLink() {
+        if (config.contains("bind.whitelist-on-bind")) {
+            return config.getBoolean("bind.whitelist-on-bind", false);
+        }
         return config.getBoolean("link.whitelist-on-link", true);
     }
 
     public int linkMaxAccounts() {
-        return Math.max(1, config.getInt("link.max-accounts", 1));
+        return Math.max(1, config.getInt("bind.max-accounts",
+                config.getInt("link.max-accounts", 1)));
     }
 
     public String whitelistAddCommand() {
-        return config.getString("link.whitelist-add-command", "whitelist add {player}");
+        return first("bind.whitelist-add-command", "link.whitelist-add-command");
     }
 
     public String whitelistRemoveCommand() {
-        return config.getString("link.whitelist-remove-command", "whitelist remove {player}");
+        return first("bind.whitelist-remove-command", "link.whitelist-remove-command");
     }
 
     public String whitelistListCommand() {
-        return config.getString("link.whitelist-list-command", "whitelist list");
+        return first("bind.whitelist-list-command", "link.whitelist-list-command");
     }
 
     public String motdDefaultAddress() {
@@ -152,7 +186,8 @@ public final class ConfigManager {
     }
 
     public List<String> bindingForceBindGroups() {
-        return config.getStringList("binding.force-bind-groups");
+        List<String> links = config.getStringList("binding.links");
+        return links.isEmpty() ? config.getStringList("binding.force-bind-groups") : links;
     }
 
     public List<String> bindingVerifyExempt() {
@@ -255,5 +290,13 @@ public final class ConfigManager {
     private String value(String path) {
         String raw = config.getString(path, "");
         return raw == null ? "" : raw.trim();
+    }
+
+    /** 优先读取新路径，缺失时兼容旧路径。 */
+    private String first(String path, String legacyPath) {
+        if (config.contains(path)) {
+            return value(path);
+        }
+        return value(legacyPath);
     }
 }

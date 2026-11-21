@@ -1,5 +1,5 @@
 name: Flavor-HuHoBot-Discord-Bridge
-version: 1.0.3
+version: 1.0.4
 main: com.flavor.huhobot.FlavorDiscordBridge
 api-version: '1.21'
 author: dydaozhu

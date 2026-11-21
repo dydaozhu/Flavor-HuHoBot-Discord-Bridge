@@ -28,17 +28,24 @@ import java.util.concurrent.Executors;
 public final class WebServer {
 
     private static final Set<String> EDITABLE = Set.of(
-            "discord.guild-id",
-            "discord.channels.game-to-discord",
-            "discord.channels.discord-to-game",
-            "discord.channels.agent",
-            "discord.channels.audit",
+            "discord.server-id",
+            "bridge.channels.game-to-discord",
+            "bridge.channels.discord-to-game",
+            "bridge.channels.audit",
+            "agent.agent",
             "bridge.enabled",
-            "bridge.from-game",
-            "bridge.from-discord",
-            "bridge.start-with",
+            "bridge.message.game-enabled",
+            "bridge.message.game-message",
+            "bridge.message.discord-enabled",
+            "bridge.message.discord-message",
+            "bridge.message.join-enabled",
+            "bridge.message.join-message",
+            "bridge.message.quit-enabled",
+            "bridge.message.quit-message",
+            "bridge.game-start-with",
+            "bridge.discord-start-with",
             "bridge.link-required",
-            "link.whitelist-on-link",
+            "bind.whitelist-on-bind",
             "agent.enabled",
             "agent.base-url",
             "agent.api-key",
@@ -181,27 +188,35 @@ public final class WebServer {
         root.put("language", plugin.config().language());
 
         ObjectNode discord = root.putObject("discord");
-        discord.put("guild-id", raw.getString("discord.guild-id", ""));
+        discord.put("server-id", raw.getString("discord.server-id", ""));
         discord.put("token", raw.getString("discord.token", "").isBlank() ? "" : "••••••••");
-        ObjectNode channels = discord.putObject("channels");
-        channels.put("game-to-discord", raw.getString("discord.channels.game-to-discord", ""));
-        channels.put("discord-to-game", raw.getString("discord.channels.discord-to-game", ""));
-        channels.put("agent", raw.getString("discord.channels.agent", ""));
-        channels.put("audit", raw.getString("discord.channels.audit", ""));
 
         ObjectNode bridge = root.putObject("bridge");
         bridge.put("enabled", plugin.config().bridgeEnabled());
-        bridge.put("from-game", plugin.config().fromGame());
-        bridge.put("from-discord", plugin.config().fromDiscord());
-        bridge.put("start-with", plugin.config().startWith());
+        ObjectNode channels = bridge.putObject("channels");
+        channels.put("game-to-discord", plugin.config().gameToDiscordChannelId());
+        channels.put("discord-to-game", plugin.config().discordToGameChannelId());
+        channels.put("audit", plugin.config().auditChannelId());
+        ObjectNode message = bridge.putObject("message");
+        message.put("game-enabled", plugin.config().gameMessageEnabled());
+        message.put("game-message", plugin.config().fromGame());
+        message.put("discord-enabled", plugin.config().discordMessageEnabled());
+        message.put("discord-message", plugin.config().fromDiscord());
+        message.put("join-enabled", plugin.config().joinEnabled());
+        message.put("join-message", plugin.config().joinFormat());
+        message.put("quit-enabled", plugin.config().quitEnabled());
+        message.put("quit-message", plugin.config().quitFormat());
+        bridge.put("game-start-with", plugin.config().startWith());
+        bridge.put("discord-start-with", plugin.config().discordStartWith());
         bridge.put("link-required", plugin.config().linkRequiredForChat());
 
-        ObjectNode link = root.putObject("link");
-        link.put("whitelist-on-link", plugin.config().whitelistOnLink());
+        ObjectNode bind = root.putObject("bind");
+        bind.put("whitelist-on-bind", plugin.config().whitelistOnLink());
 
         ObjectNode agent = root.putObject("agent");
         agent.put("enabled", plugin.config().agentEnabled());
         agent.put("base-url", plugin.config().agentBaseUrl());
+        agent.put("agent", plugin.config().agentChannelId());
         agent.put("model", plugin.config().agentModel());
         agent.put("mode", plugin.config().agentMode());
         agent.put("max-steps", plugin.config().agentMaxSteps());

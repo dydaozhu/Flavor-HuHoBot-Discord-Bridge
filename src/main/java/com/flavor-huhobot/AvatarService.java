@@ -106,7 +106,7 @@ public final class AvatarService {
         try {
             HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(https(request.skinUrl())))
                     .timeout(Duration.ofSeconds(5))
-                    .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.3")
+                    .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.4")
                     .GET()
                     .build();
             HttpResponse<byte[]> response = http.send(httpRequest,

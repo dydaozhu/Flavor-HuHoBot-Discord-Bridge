@@ -161,7 +161,7 @@ public final class AgentService {
             if (plugin.discordBot().textChannel(configured) != null) {
                 return configured;
             }
-            plugin.getLogger().warning("discord.channels.agent 配置的频道不存在或机器人不可见: " + configured);
+            plugin.getLogger().warning("agent.agent 配置的频道不存在或机器人不可见: " + configured);
         }
         return event.getChannel().getId();
     }

@@ -1,6 +1,8 @@
 # Flavor-HuHoBot-Discord-Bridge
 
-Paper 1.21+ 的 Discord 桥接与管理插件，提供双向聊天、账号绑定、白名单联动、AI Agent 和本地 WebUI。
+**把 Discord 变成 Minecraft 服务器的操作台。**
+
+Flavor-HuHoBot 将双向聊天、账号绑定、白名单联动、服务器状态卡片、AI Agent 和本地 WebUI 收进一个轻量插件。玩家继续留在 Discord，管理员也能在同一处完成日常管理。
 
 [![Modrinth](https://img.shields.io/badge/Modrinth-Download-1bd96a?style=for-the-badge&logo=modrinth&logoColor=white)](https://modrinth.com/plugin/flavor-huhoBot-discord-bridge)
 [![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github)](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge)
@@ -22,6 +24,7 @@ Paper 1.21+ 的 Discord 桥接与管理插件，提供双向聊天、账号绑�
 | AI Agent | 通过 OpenAI 兼容接口执行服务器管理任务，内置 16 个工具 |
 | 管理员审批 | 危险操作发送「批准 / 拒绝」按钮，默认禁止发起者自批 |
 | 审计 | AI 工具调用写入 `audit.jsonl` |
+| 状态图片 | `/motd`、`/online`、`/whitelist list` 使用 HTML 渲染为 Discord 风格卡片 |
 | WebUI | 默认仅监听 `127.0.0.1`，Bearer Token 登录 |
 | 文本格式 | 支持传统 `&` 颜色代码与 MiniMessage |
 | 中英双语 | 语言文件包含界面文本与 Discord 命令描述 |
@@ -84,27 +87,52 @@ Paper 1.21+ 的 Discord 桥接与管理插件，提供双向聊天、账号绑�
 最小配置示例：
 
 ```yaml
+server:
+  name: "Flavor-HuHoBot-Discord-Bridge"
+  host: "huhobot.mcfwq.top"
+
 discord:
   token: "Bot Token"
-  guild-id: "服务器 ID"
-  channels:
-    game-to-discord: "游戏消息发往的频道 ID"
-    discord-to-game: "读取 Discord 消息的频道 ID"
-    agent: "AI 回复频道 ID"
+  server-id: "服务器 ID"
   admin-role-ids: []
+  intents:
+    message-content: true
+    members: true
 
 bridge:
   enabled: true
+  channels:
+    game-to-discord: "游戏消息发往的频道 ID"
+    discord-to-game: "读取 Discord 消息的频道 ID"
+    audit: ""
+  message:
+    game-enabled: true
+    game-message: "[MC] {name}: {message}"
+    discord-enabled: true
+    discord-message: "[DC] {name}: {message}"
+    join-enabled: true
+    join-message: "[MC] {name} 加入了服务器"
+    quit-enabled: true
+    quit-message: "[MC] {name} 离开了服务器"
+  game-start-with: ""
+  discord-start-with: ""
+  ignore-bots: true
+  link-required: false
+
+bind:
+  whitelist-on-bind: false
+  max-accounts: 1
 
 binding:
   force-bind: false
 
 agent:
-  enabled: true
+  enabled: false
   base-url: "https://api.openai.com/v1"
-  api-key: "sk-..."
+  api-key: ""
   model: "gpt-4o-mini"
   mode: manual
+  agent: ""
 
 webui:
   bind: "127.0.0.1"
@@ -117,18 +145,26 @@ webui:
 |---|---|
 | `server.name` | 服务器显示名称，占位符 `{server_name}` |
 | `server.host` | 服务器地址，占位符 `{server_host}` |
-| `discord.channels.game-to-discord` | 游戏 → Discord 的频道；留空关闭该方向 |
-| `discord.channels.discord-to-game` | Discord → 游戏的频道；留空关闭该方向 |
-| `discord.channels.agent` | AI 任务与回复频道；留空使用执行命令的当前频道 |
-| `discord.admin-role-ids` | 额外管理员角色 ID |
-| `bridge.from-game` | 游戏 → Discord 格式，占位符 `{name}`、`{message}` |
-| `bridge.from-discord` | Discord → 游戏格式，占位符 `{name}`、`{message}`、`{discord}`、`{mc}` |
-| `bridge.start-with` | 仅转发指定前缀开头的游戏消息 |
-| `link.whitelist-on-link` | 绑定成功后自动加白名单 |
-| `link.max-accounts` | 每个 Discord 用户最多绑定的游戏账号数，默认 1 |
-| `link.whitelist-list-command` | Discord `/whitelist list` 执行的查询命令，默认 `whitelist list` |
+| `discord.server-id` | Discord 服务器 ID |
+| `bridge.channels.game-to-discord` | 游戏 → Discord 的频道；留空关闭该方向 |
+| `bridge.channels.discord-to-game` | Discord → 游戏的频道；留空关闭该方向 |
+| `bridge.channels.audit` | 审计日志频道；留空不推送 |
+| `agent.agent` | AI 任务与回复频道；留空使用执行命令的当前频道 |
+| `bridge.message.game-enabled` | 是否转发游戏消息 |
+| `bridge.message.game-message` | 游戏 → Discord 格式，占位符 `{name}`、`{message}` |
+| `bridge.message.discord-enabled` | 是否转发 Discord 消息 |
+| `bridge.message.discord-message` | Discord → 游戏格式，占位符 `{name}`、`{message}`、`{discord}`、`{mc}` |
+| `bridge.message.join-enabled` | 是否发送加入消息 |
+| `bridge.message.join-message` | 加入消息；留空关闭 |
+| `bridge.message.quit-enabled` | 是否发送退出消息 |
+| `bridge.message.quit-message` | 退出消息；留空关闭 |
+| `bridge.game-start-with` | 仅转发指定前缀开头的游戏消息 |
+| `bridge.discord-start-with` | 仅转发指定前缀开头的 Discord 消息 |
+| `bind.whitelist-on-bind` | 绑定成功后自动加白名单 |
+| `bind.max-accounts` | 每个 Discord 用户最多绑定的游戏账号数，默认 1 |
+| `bind.whitelist-list-command` | Discord `/whitelist list` 执行的查询命令，默认 `whitelist list` |
 | `binding.force-bind` | 开启强制绑定 |
-| `binding.force-bind-groups` | 强制绑定踢出提示中展示的 Discord 服务器/频道/邀请链接 |
+| `binding.links` | 强制绑定踢出提示中展示的 Discord 服务器/频道/邀请链接 |
 | `binding.verify-exempt` | 免强制绑定的玩家名 |
 | `agent.mode` | `manual`：危险工具需审批；`auto`：只读，危险工具禁用 |
 | `agent.max-steps` | 单任务最大模型轮次 |
@@ -141,30 +177,21 @@ webui:
 | `motd.default-address` | Discord `/motd` 不填地址时查询的服务器，默认 `mc.hypixel.net` |
 | `webui.bind` / `webui.port` | WebUI 监听地址与端口 |
 
-### 配置升级
-
-当前结构版本：
+### 配置版本
 
 ```yaml
-config-version: 7
+config-version: 8
 ```
 
-- 启动或重载时自动检查 `config-version`
-- 升级时保留已填写的值
-- 不生成 `.bak` 文件，已有的 `config.yml.v*.bak` 会自动删除
-- 手动把 `config-version` 改低后执行 `/reload` 也会触发升级
-- v3 → v4 新增 `link.whitelist-list-command`
-- v4 → v5 仅更新版本号，无新增配置项
-- v5 → v6 新增 `link.max-accounts`，默认 1
-- v6 → v7 新增 `server.name`、`server.host`
+插件启动或 `/reload` 时会检查配置结构。旧版配置会按当前模板重新排版，并迁移已有值；不会生成 `.bak` 文件。
 
-语言文件也有独立的版本号：
+语言文本使用独立版本：
 
 ```yaml
 language-version: 3
 ```
 
-插件会保留已有翻译，并自动补齐新版本新增的语言键。
+已有翻译会保留，缺失键会自动补齐。
 
 ---
 
@@ -244,7 +271,7 @@ link:
 
 被锁定的账号无法进入服务器；解锁后恢复。锁定状态保存在 `binds.json`。
 
-Discord 用户退出 Discord 服务器时，会自动解除该用户的所有绑定；如果 `link.whitelist-on-link` 开启，也会同时移除对应白名单。
+Discord 用户退出 Discord 服务器时，会自动解除该用户的所有绑定；如果 `bind.whitelist-on-bind` 开启，也会同时移除对应白名单。
 
 ---
 
@@ -328,7 +355,7 @@ agent:
 /agent stop
 ```
 
-- 消息与回复发送到 `discord.channels.agent`，不创建子区
+- 消息与回复发送到 `agent.agent`，不创建子区
 - 同一用户在同一频道的后续任务会复用上下文
 - `/agent new` 清除该用户在当前服务器的上下文
 - 危险操作需要管理员点击批准
@@ -514,4 +541,4 @@ pom.xml                             Maven 构建
 
 ---
 
-**当前版本：1.0.3**
+**当前版本：1.0.4**

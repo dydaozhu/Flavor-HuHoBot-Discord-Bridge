@@ -146,7 +146,7 @@ public final class DiscordBot {
                 plugin.getServer().getScheduler().runTaskLater(plugin,
                         () -> registerCommands(jda, attempt + 1), 100L);
             } else {
-                plugin.getLogger().severe("找不到 discord.guild-id 对应的服务器，Slash 命令未注册。");
+                plugin.getLogger().severe("找不到 discord.server-id 对应的服务器，Slash 命令未注册。");
             }
             return;
         }

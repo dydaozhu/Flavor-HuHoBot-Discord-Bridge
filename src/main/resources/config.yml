@@ -4,7 +4,7 @@
 #  Minecraft: Paper 1.21+   Java: 21
 # ============================================================
 
-config-version: 7
+config-version: 8
 language: zh_CN
 
 # ------------------------------------------------------------
@@ -22,16 +22,7 @@ discord:
   # 必须开启：MESSAGE CONTENT INTENT、SERVER MEMBERS INTENT
   token: ""
   # 机器人所在服务器 ID（右键服务器图标 -> 复制服务器 ID）
-  guild-id: ""
-  channels:
-    # 游戏 -> Discord 的频道 ID；留空则关闭该方向
-    game-to-discord: ""
-    # Discord -> 游戏 的频道 ID；留空则关闭该方向
-    discord-to-game: ""
-    # AI Agent 回复发送频道 ID（留空则使用触发命令的频道；不再创建子区）
-    agent: ""
-    # 审计日志推送频道 ID（留空则不推送）
-    audit: ""
+  server-id: ""
   # 拥有管理权限的 Discord 角色 ID 列表（除 MANAGE_SERVER 权限外）
   admin-role-ids: []
   intents:
@@ -43,29 +34,43 @@ discord:
 # 聊天桥接
 # ------------------------------------------------------------
 bridge:
+  # 总开关
   enabled: true
-  # 游戏 -> Discord
-  from-game: "[MC] {name}: {message}"
-  # Discord -> 游戏
-  from-discord: "[DC] {name}: {message}"
+  channels:
+    # 游戏 -> Discord 的频道 ID；留空则关闭该方向
+    game-to-discord: ""
+    # Discord -> 游戏 的频道 ID；留空则关闭该方向
+    discord-to-game: ""
+    # 审计日志推送频道 ID（留空则不推送）
+    audit: ""
+  message:
+    # 游戏 -> Discord
+    game-enabled: true
+    game-message: '[MC] {name}: {message}'
+    # Discord -> 游戏
+    discord-enabled: true
+    discord-message: '[DC] {name}: {message}'
+    # 加入消息
+    join-enabled: true
+    join-message: '[MC] {name} 加入了服务器'
+    # 退出消息
+    quit-enabled: true
+    quit-message: '[MC] {name} 离开了服务器'
+  # 仅转发以该前缀开头的游戏消息，留空表示全部转发
+  game-start-with: ""
+  # 仅转发以该前缀开头的Discord消息，留空表示全部转发
+  discord-start-with: ""
   # 忽略其它机器人与 Webhook 的消息，避免循环
   ignore-bots: true
-  # 仅转发以该前缀开头的游戏消息，留空表示全部转发
-  start-with: ""
   # 要求 Discord 用户先绑定 Minecraft 账号才转发其消息
   link-required: false
-  events:
-    join: true
-    quit: true
-    join-format: "[MC] {name} 加入了服务器"
-    quit-format: "[MC] {name} 离开了服务器"
 
 # ------------------------------------------------------------
 # 账号绑定
 # ------------------------------------------------------------
-link:
+bind:
   # 绑定成功后自动加白名单
-  whitelist-on-link: true
+  whitelist-on-bind: false
   # 每个 Discord 用户最多可绑定的游戏账号数量
   max-accounts: 1
   whitelist-add-command: "whitelist add {player}"
@@ -86,10 +91,8 @@ binding:
   # 【注意】开启强制绑定后请关闭 Minecraft 自带白名单/其他白名单插件，
   # 否则玩家会在登录阶段被白名单拦截，根本拿不到验证码。
   force-bind: false
-
   # 强制绑定踢出提示中展示的 Discord 服务器/频道/邀请链接，留空则不提示。
-  force-bind-groups: []
-
+  links: []
   # 免验证名单：这些玩家无需绑定即可进入服务器（仍可主动绑定），每行一个玩家名。
   verify-exempt: []
 
@@ -107,6 +110,8 @@ agent:
   mode: manual
   max-steps: 15
   max-context-tokens: 24000
+  # AI Agent 回复发送频道 ID（留空则使用触发命令的频道）
+  agent: ""
   # 每个 Discord 服务器每日 token 预算，<=0 表示不限制
   daily-token-budget: 200000
   # 是否允许发起者批准自己的请求（不建议）

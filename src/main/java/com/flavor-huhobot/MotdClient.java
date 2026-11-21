@@ -62,7 +62,7 @@ public final class MotdClient {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                 .timeout(Duration.ofSeconds(15))
                 .header("Accept", "application/json")
-                .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.3")
+                .header("User-Agent", "Flavor-HuHoBot-Discord-Bridge/1.0.4")
                 .GET()
                 .build();
         HttpResponse<String> response = http.send(request,

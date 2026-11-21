@@ -27,6 +27,9 @@ public final class ChatBridge {
         if (!plugin.config().bridgeEnabled()) {
             return;
         }
+        if (!plugin.config().discordMessageEnabled()) {
+            return;
+        }
         String configuredGuild = plugin.config().guildId();
         if (!configuredGuild.isBlank() && !configuredGuild.equals(event.getGuild().getId())) {
             return;
@@ -44,6 +47,13 @@ public final class ChatBridge {
         }
 
         String content = event.getMessage().getContentDisplay().trim();
+        String startWith = plugin.config().discordStartWith();
+        if (!startWith.isBlank()) {
+            if (!content.startsWith(startWith)) {
+                return;
+            }
+            content = content.substring(startWith.length()).trim();
+        }
         StringBuilder attachments = new StringBuilder();
         for (Message.Attachment attachment : event.getMessage().getAttachments()) {
             attachments.append(attachment.isImage() ? " [图片]" : " [附件]");
@@ -86,6 +96,9 @@ public final class ChatBridge {
 
     public void onMcChat(AsyncChatEvent event) {
         if (!plugin.config().bridgeEnabled()) {
+            return;
+        }
+        if (!plugin.config().gameMessageEnabled()) {
             return;
         }
         String chatChannel = plugin.config().gameToDiscordChannelId();

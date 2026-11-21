@@ -1,8 +1,8 @@
 # Flavor-HuHoBot-Discord-Bridge
 
-**Turn Discord into a management panel for your Minecraft server.**
+**A Discord-native control room for your Paper server.**
 
-A Discord bridge and management plugin for Paper 1.21+, featuring two-way chat, account linking, whitelist sync, an AI Agent, and a local WebUI.
+Flavor-HuHoBot brings chat, account linking, whitelist management, server status cards, an approval-based AI Agent, and a local WebUI into one lightweight plugin — so your community can stay in Discord while you keep the server running.
 
 ![Modrinth](https://img.shields.io/badge/Modrinth-Download-1bd96a?style=for-the-badge&logo=modrinth&logoColor=white)
 [![GitHub](https://img.shields.io/badge/GitHub-Source-181717?style=for-the-badge&logo=github)](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge)
@@ -11,8 +11,6 @@ A Discord bridge and management plugin for Paper 1.21+, featuring two-way chat, 
 ![Java](https://img.shields.io/badge/Java-21-f89820?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-AGPL--3.0-007ec6?style=for-the-badge)
 
-**English** | [中文](#中文)
-
 ---
 
 ## English
@@ -20,6 +18,7 @@ A Discord bridge and management plugin for Paper 1.21+, featuring two-way chat, 
 ### Why Choose It
 
 - **One plugin for bridging and management** — no separate chat-sync or whitelist plugin required
+- **Discord-native status cards** — `/motd`, `/online`, and `/whitelist list` return clean image cards rendered from HTML
 - **An AI Agent that can actually operate the server** — inspect logs, run commands, manage the whitelist, and moderate Discord members
 - **Approval for dangerous actions** — sensitive AI operations require an administrator to click Approve
 - **Local WebUI** — edit common settings and review audits without exposing it to the internet
@@ -33,7 +32,7 @@ A Discord bridge and management plugin for Paper 1.21+, featuring two-way chat, 
 Game chat and Discord messages can use different channels.
 
 ```yaml
-discord:
+bridge:
   channels:
     game-to-discord: "Channel for game messages"
     discord-to-game: "Channel read for Discord messages"
@@ -148,8 +147,8 @@ Full installation, permissions, configuration, and command reference:
 | `/lock [Minecraft ID]` | Lock an account and block it from joining |
 | `/unlock [Minecraft ID]` | Unlock an account |
 | `/status` | Server status |
-| `/online` | Online players |
-| `/motd [address]` | Query a Minecraft server's MOTD; defaults to the configured address |
+| `/online` | Online players and activity card |
+| `/motd [address]` | Server status card; defaults to the configured address |
 | `/whitelist add\|remove\|list` | Whitelist management |
 | `/console command:<command>` | Run a console command |
 | `/reload` | Reload all files and reconnect the bot |
@@ -157,19 +156,33 @@ Full installation, permissions, configuration, and command reference:
 In-game main command: `/flavorhuhobot`  
 Aliases: `/fh`, `/discord`
 
-### Config Upgrade
+### Configuration
 
-Current config version:
+The config is organised around the things you actually manage:
 
 ```yaml
-config-version: 7
+config-version: 8
+
+discord:
+  token: ""
+  server-id: ""
+
+bridge:
+  channels:
+    game-to-discord: ""
+    discord-to-game: ""
+    audit: ""
+
+bind:
+  whitelist-on-bind: false
+  max-accounts: 1
 ```
 
-The plugin upgrades old configs automatically and preserves existing values. No `.bak` files are created.
+The plugin upgrades old configs automatically, preserves existing values, and rewrites the file using the current layout. No `.bak` files are created.
 
 The legacy `links.json` file is migrated to `binds.json` automatically.
 
-Language files also have a version:
+Language files have their own version:
 
 ```yaml
 language-version: 3
@@ -201,13 +214,14 @@ See [LICENSE](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge/blob/mai
 
 ## 中文
 
-**把 Discord 变成 Minecraft 服务器的管理面板。**
+**让 Discord 成为 Paper 服务器的日常操作台。**
 
-一个面向 Paper 1.21+ 的 Discord 桥接与管理插件：双向聊天、账号绑定、白名单、AI Agent 和本地 WebUI，全部集成在一个 jar 里。
+Flavor-HuHoBot 把双向聊天、账号绑定、白名单、服务器状态卡片、需要审批的 AI Agent 和本地 WebUI 收进一个轻量插件。玩家继续留在 Discord，管理员也能在同一处完成日常维护。
 
 ### 为什么选择它
 
 - **一个插件完成桥接与管理**：不需要再装额外的聊天同步或白名单插件
+- **Discord 内的状态卡片**：`/motd`、`/online`、`/whitelist list` 直接返回 HTML 渲染的图片卡片
 - **AI 真正能操作服务器**：不只是聊天，还能查日志、执行命令、管理白名单和 Discord 成员
 - **危险操作有审批**：AI 执行敏感操作前必须由管理员点击批准
 - **本地 WebUI**：不暴露公网也能改配置、看审计
@@ -221,7 +235,7 @@ See [LICENSE](https://github.com/dydaozhu/Flavor-HuHoBot-Discord-Bridge/blob/mai
 游戏消息和 Discord 消息可以分别使用不同频道。
 
 ```yaml
-discord:
+bridge:
   channels:
     game-to-discord: "游戏消息发往的频道"
     discord-to-game: "读取 Discord 消息的频道"
@@ -336,8 +350,8 @@ http://127.0.0.1:8080
 | `/lock [游戏ID]` | 锁定账号，禁止进入服务器 |
 | `/unlock [游戏ID]` | 解锁账号 |
 | `/status` | 服务器状态 |
-| `/online` | 在线玩家 |
-| `/motd [地址]` | 查询 Minecraft 服务器 MOTD，留空使用默认地址 |
+| `/online` | 在线玩家与活跃度卡片 |
+| `/motd [地址]` | 服务器状态卡片，留空使用默认地址 |
 | `/whitelist add\|remove\|list` | 白名单管理 |
 | `/console command:<命令>` | 执行控制台命令 |
 | `/reload` | 重载所有文件并重连机器人 |
@@ -345,19 +359,33 @@ http://127.0.0.1:8080
 游戏内主命令：`/flavorhuhobot`  
 别名：`/fh`、`/discord`
 
-### 配置升级
+### 配置结构
 
-当前配置版本：
+配置按实际管理对象组织：
 
 ```yaml
-config-version: 7
+config-version: 8
+
+discord:
+  token: ""
+  server-id: ""
+
+bridge:
+  channels:
+    game-to-discord: ""
+    discord-to-game: ""
+    audit: ""
+
+bind:
+  whitelist-on-bind: false
+  max-accounts: 1
 ```
 
-插件会自动升级旧配置并保留已填写的值，不生成 `.bak` 备份。
+插件会自动升级旧配置并保留已填写的值，然后用当前布局重写文件，不生成 `.bak` 备份。
 
 旧版 `links.json` 会自动迁移为 `binds.json`。
 
-语言文件也有版本号：
+语言文件有独立版本：
 
 ```yaml
 language-version: 3
@@ -387,4 +415,4 @@ language-version: 3
 
 ---
 
-**Current version / 当前版本：1.0.3**
+**Current version / 当前版本：1.0.4**
